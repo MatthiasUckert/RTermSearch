@@ -137,6 +137,7 @@ prep_document <- function(.tab, .fun_std = NULL) {
       pattern = " ",
       to_lower = FALSE
     ) %>%
+    dplyr::filter(!token == "") %>%
     dplyr::mutate(tok_id = dplyr::row_number()) %>%
     dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token, dplyr::everything()) %>%
     dplyr::ungroup()
