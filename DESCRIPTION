@@ -15,4 +15,11 @@ LazyData: true
 Imports: 
     stringi,
     dplyr,
-    magrittr
+    magrittr,
+    tibble,
+    tidytext,
+    purrr,
+    tidyr
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

@@ -2,6 +2,7 @@
 #'
 #' @param .tab
 #' A Dataframe with at least 2 columns (tid: Term ID, term: Term)
+#' @param .fun_std A function to standardize Strings. Default = NULL (no standardization use)
 #' @return A Dataframe with a term list column
 #' @export
 #' @examples
@@ -9,20 +10,28 @@
 #' termlist <- test_termlist
 #' prep_termlist(termlist)
 # DEBUG
-# .tab <- dplyr::bind_rows(test_termlist, test_termlist[1:4, ])
-prep_termlist <- function(.tab) {
+# .tab <- test_termlist
+# .tab <- tibble::add_row(test_termlist, tid = 7, term = "Test")
+# .tab <- tibble::add_row(test_termlist, tid = 8, term = "Linguistics")
+prep_termlist <- function(.tab, .fun_std = NULL) {
 
   # Define Variables --------------------------------------------------------
   term <- tid <- n_dup <- NULL
 
   # Check Columns in Dataframe ----------------------------------------------
   if (!all(c("tid", "term") %in% colnames(.tab))) {
-    stop("Input MUST contain the columns 'tid' (Term ID) and 'term'", call. = FALSE)
+    stop("Input MUST contain the columns 'tid' and 'term'", call. = FALSE)
+  }
+
+  if (!is.null(.fun_std)) {
+    tab_ <- dplyr::mutate(.tab, term = .fun_std(term))
+  } else {
+    tab_ <- .tab
   }
 
 
   # Check for Unique TIDs ---------------------------------------------------
-  dup_tid_ <- .tab %>%
+  dup_tid_ <- tab_ %>%
     dplyr::group_by(tid) %>%
     dplyr::summarise(term = list(term), .groups = "drop") %>%
     dplyr::mutate(n_dup = lengths(term)) %>%
@@ -30,99 +39,170 @@ prep_termlist <- function(.tab) {
     dplyr::select(tid, term, n_dup)
 
   if (nrow(dup_tid_) > 0) {
-    warning("Dataset contains duplicate term identifiers (see output)")
+    warning("Dataset contains duplicate term identifiers (column: tid). See Output for more Information.")
     return(dup_tid_)
   }
 
   # Check for Duplicates ----------------------------------------------------
-  dup_term_ <- .tab %>%
+  dup_term_ <- tab_ %>%
     dplyr::group_by(term) %>%
     dplyr::summarise(tid = list(term), .groups = "drop")  %>%
-    dplyr::mutate(n_dup = lengths(term)) %>%
+    dplyr::mutate(n_dup = lengths(tid)) %>%
     dplyr::filter(n_dup > 1) %>%
     dplyr::select(tid, term, n_dup)
 
   if (nrow(dup_term_) > 0) {
-    warning("Dataset contains duplicates terms (see output)")
+    warning("Dataset contains duplicates terms (column: term). See Output for more Information.")
     return(dup_term_)
   }
 
-  dplyr::mutate(.tab, term = stringi::stri_split_fixed(term, " "))
+  dplyr::mutate(tab_, token = stringi::stri_split_fixed(term, " "))
 
 }
 
+#' Perpare Documents
+#'
+#' @param .tab
+#' A Dataframe with at least two columns:\cr
+#' doc_id: Unique document identifier\cr
+#' text: Document text\cr
+#'
+#' IMPORTANT NOTE: Dataframe must contain only one row per doc_id
+#' @param .fun_std A function to standardize Strings. Default = NULL (no standardization use)
+#'
+#' @return
+#' A Dataframe with the following columns:\cr
+#' doc_id: Unique document identifier\cr
+#' pag_id: Page ID of token\cr
+#' par_id: Paragraph ID of token\cr
+#' sen_id: Sentence ID of token\cr
+#' tok_id: Token ID\cr
+#' token: Token (tokenized using white spaces)
+#' @export
+#'
+#' @examples
+#' .tab <- test_document
+#' doc <- prep_document(.tab, string_standardization)
+prep_document <- function(.tab, .fun_std = NULL) {
+  # Define Variables --------------------------------------------------------
+  doc_id <- text <- token <- pag_id <- par_id <- sen_id <- tok_id <- NULL
 
-#' #' Prepare Term List Table for position_count()
-#' #'
-#' #' @param .table_text
-#' #' A Dataframe with at least 2 columns (doc_id: A Document Identifier, text: Text) \cr
-#' #' @param .use_udpipe
-#' #' Use UDPipe for tokenization (if FALSE the default, other parameters are not important)
-#' #' @param .lan UDPipe language (see ?udpipe_download_model)
-#' #' @param .dir_mod UDPipe model directory
-#' #' @param .tagger one of c("default", "none")
-#' #' @param .parser one of c("none", "default")
-#' #' @param .return_raw return the UDPipe raw output
-#' #' @return A tokenized Dataframe
-#' #' @export
-#' #' @importFrom rlang .data
-#' #' @examples
-#' prepare_table_text <- function(.table_text, .use_udpipe = FALSE,
-#'                                .lan = "english-ewt", .dir_mod = getwd(),
-#'                                .tagger = c("default", "none"),
-#'                                .parser = c("none", "default"),
-#'                                .return_raw = FALSE) {
-#'   text <- token <- NULL
-#'   # Check if Inputs are Dataframes ------------------------------------------
-#'   if (!is.data.frame(.table_text)) {
-#'     stop("'.table_terms' MUST be a dataframe", call. = FALSE)
-#'   }
+  # Check Columns in Dataframe ----------------------------------------------
+  if (!all(c("doc_id", "text") %in% colnames(.tab))) {
+    stop("Input MUST contain the columns 'doc_id' and 'term'", call. = FALSE)
+  }
+
+  if (any(duplicated(.tab[["doc_id"]]))) {
+    stop("doc_id MUST contain duplicates", call. = FALSE)
+  }
+
+
+  # Tokenize Dataframe ------------------------------------------------------
+  tab_ <- .tab %>%
+    dplyr::group_by(doc_id) %>%
+    tidytext::unnest_tokens(
+      output = text,
+      input = text,
+      token = stringi::stri_split_regex, pattern = "\f",
+      to_lower = FALSE
+    ) %>%
+    dplyr::mutate(pag_id = dplyr::row_number(), .before = text) %>%
+    dplyr::group_by(doc_id, pag_id) %>%
+    tidytext::unnest_tokens(
+      output = text,
+      input = text,
+      token = stringi::stri_split_regex, pattern = "\n\n",
+      to_lower = FALSE,
+    ) %>%
+    dplyr::mutate(par_id = dplyr::row_number()) %>%
+    dplyr::group_by(doc_id, pag_id, par_id) %>%
+    tidytext::unnest_tokens(
+      output = text,
+      input = text,
+      token = "sentences",
+      to_lower = FALSE
+    ) %>%
+    dplyr::mutate(sen_id = dplyr::row_number())
+
+  if (!is.null(.fun_std)) {
+    tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
+  }
+
+  tab_ %>%
+    dplyr::group_by(doc_id, pag_id, par_id, sen_id) %>%
+    tidytext::unnest_tokens(
+      output = token,
+      input = text,
+      token = stringi::stri_split_fixed,
+      pattern = " ",
+      to_lower = FALSE
+    ) %>%
+    dplyr::mutate(tok_id = dplyr::row_number()) %>%
+    dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token, dplyr::everything()) %>%
+    dplyr::ungroup()
+}
+
+#
+# .termlist <- prep_termlist(dplyr::mutate(test_termlist, term = tolower(term)))
+# .document <- prep_document(test_document)
+# quos_ <- dplyr::quos(sen_id)
+
+
+#' Retrieve Position of Terms in Documents
 #'
-#'   # Check Columns in Dataframe ----------------------------------------------
-#'   if (!all(c("doc_id", "text") %in% colnames(.table_text))) {
-#'     stop("'.table_text' MUST contain the columns 'doc_id' and 'text'", call. = FALSE)
-#'   }
+#' @param .termlist A term list prepared by prep_termlist()
+#' @param .document A tokenized Dataframe prepared by prep_document()
+#' @param ... Any number of Columns that mark a separator of tokens (e.g. a sentence)
 #'
-#'   if (!.use_udpipe) {
-#'     tab_token <- .table_text %>%
-#'       tidytext::unnest_tokens(
-#'         text, .data$text,
-#'         token = stringi::stri_split_regex, pattern = "\n\n", to_lower = FALSE
-#'       ) %>%
-#'       dplyr::group_by(.data$doc_id) %>%
-#'       dplyr::mutate(par_id = dplyr::row_number()) %>%
-#'       dplyr::ungroup() %>%
-#'       tidytext::unnest_tokens(
-#'         text, .data$text, token = "sentences", to_lower = FALSE
-#'       ) %>%
-#'       dplyr::group_by(.data$doc_id) %>%
-#'       dplyr::mutate(sen_id = dplyr::row_number()) %>%
-#'       dplyr::ungroup() %>%
-#'       tidytext::unnest_tokens(token, .data$text) %>%
-#'       dplyr::mutate(token = stringi::stri_replace_all_regex(token, "[[:punct:]]", "")) %>%
-#'       dplyr::filter(!token == "") %>%
-#'       dplyr::filter(!is.na(token)) %>%
-#'       dplyr::group_by(.data$doc_id) %>%
-#'       dplyr::mutate(tok_id = dplyr::row_number()) %>%
-#'       dplyr::ungroup() %>%
-#'       dplyr::select(.data$doc_id, .data$par_id, .data$sen_id, .data$tok_id, .data$token)
-#'   } else {
-#'     .parser <- match.arg(.parser)
-#'     .tagger <- match.arg(.tagger)
-#'     tab_mod <- udpipe::udpipe_download_model(.lan, .dir_mod)
-#'     mod <- udpipe::udpipe_load_model(tab_mod$file_model)
+#' @return A Dataframe
+#' @export
+position_count <- function(.termlist, .document, ...) {
+  # Define Variables --------------------------------------------------------
+  doc_id <- token <- ngram <- start <- idx <- id <- dup <- tid <- term <- NULL
+
+
+  quos_ <- dplyr::quos(...)
+
+  tab_d_ <- dplyr::select(.document, doc_id, !!!quos_, token)
+  lst_t_ <- split(.termlist, .termlist[["tid"]])
+
+  out_ <- purrr::map_dfr(
+    .x = lst_t_,
+    .f = ~ h_position_count(.x, tab_d_)
+  ) %>%
+    dplyr::arrange(dplyr::desc(ngram)) %>%
+    dplyr::mutate(id = dplyr::row_number())
+
+  dup_ <- out_  %>%
+    dplyr::mutate(
+      idx = purrr::map2(start, stop, ~.x:.y),
+      ) %>%
+    tidyr::unnest(idx) %>%
+    dplyr::mutate(dup = duplicated(idx)) %>%
+    dplyr::group_by(id) %>%
+    dplyr::summarise(dup = any(dup), .groups = "drop")
+
+  dplyr::left_join(out_, dup_, by = "id") %>%
+    dplyr::left_join(dplyr::select(.termlist, tid, term), by = "tid")  %>%
+    dplyr::select(doc_id, !!!quos_, ngram, tid, start, stop, dup, term)
+}
+
+
+#' Basic String Standardization
 #'
-#'     tab_token <- .table_text %>%
-#'       udpipe::udpipe(mod, parser = .parser, tagger = .tagger) %>%
-#'       tibble::as_tibble()
+#' @param .str A string
 #'
-#'     if (!.return_raw) {
-#'       tab_token <- tab_token %>%
-#'         dplyr::filter(!.data$upos %in% c("PART", "PUNCT")) %>%
-#'         dplyr::select(.data$doc_id,
-#'                       par_id = .data$paragraph_id, sen_id = .data$sentence_id,
-#'                       tok_id = .data$term_id, .data$token, .data$lemma
-#'         )
-#'     }
-#'   }
-#' }
+#' @return A string
+#' @export
+#'
+#' @examples
+#' string_standardization("  TesT String")
+string_standardization <- function(.str) {
+  .str %>%
+    stringi::stri_escape_unicode() %>%
+    stringi::stri_enc_toascii() %>%
+    tolower() %>%
+    stringi::stri_replace_all_regex("([[:blank:]]|[[:space:]])+", " ") %>%
+    stringi::stri_replace_all_regex("[[:punct:]]", " ") %>%
+    trimws()
+}

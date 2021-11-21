@@ -4,10 +4,12 @@
 \alias{prep_termlist}
 \title{Prepare Term List}
 \usage{
-prep_termlist(.tab)
+prep_termlist(.tab, .fun_std = NULL)
 }
 \arguments{
 \item{.tab}{A Dataframe with at least 2 columns (tid: Term ID, term: Term)}
+
+\item{.fun_std}{A function to standardize Strings. Default = NULL (no standardization use)}
 }
 \value{
 A Dataframe with a term list column

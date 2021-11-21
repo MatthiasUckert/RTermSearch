@@ -17,14 +17,3 @@ An integer vector (vector has length zero if sequence is not found)
 \description{
 Find a sequence in another sequence
 }
-\examples{
-# Find an integer sequence
-find_seq_in_seq(2:10, c(1:20, 1:20))
-
-# Find a character sequence
-find_seq_in_seq(c("C", "D"), LETTERS)
-
-# No sequence found
-find_seq_in_seq(c("R", "D"), LETTERS)
-
-}
