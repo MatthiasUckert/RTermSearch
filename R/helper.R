@@ -26,15 +26,18 @@ find_seq_in_seq <- function(.seq_find, .seq_base) {
 #' Helper Function for position_count()
 #'
 #' @param .row_terms A one row Dataframe prepared by prep_termlist()
-#' @param .document A tokenized Dataframe prepared by prep_document()
+#' @param .doc A tokenized Dataframe prepared by prep_document()
 #'
 #' @return A Dataframe
-h_position_count <- function(.row_terms, .document) {
+# DEBUG
+# .row_terms <- lst_t_[[1]]
+# .doc <- tab_d_
+h_position_count <- function(.row_terms, .doc) {
   # Define Variables --------------------------------------------------------
   start <- tid <- ngram <- token <- check <- NULL
 
-  vec_t_ <- unlist(.row_terms[["term"]])
-  tab_d_ <- .document
+  vec_t_ <- unlist(.row_terms[["token"]])
+  tab_d_ <- .doc
   len_t_ <- length(vec_t_)
 
   if (len_t_== 1) {
@@ -47,22 +50,12 @@ h_position_count <- function(.row_terms, .document) {
     )
   }
 
-  tab_pos_ <- tab_pos_ %>%
+  tab_pos_ %>%
     dplyr::mutate(
       tid   = .row_terms[["tid"]],
       stop  = start + len_t_ - 1L,
       ngram = len_t_,
-    ) %>% dplyr::select(tid, ngram, start, stop)
-
-
-  vec_check_ <- tab_d_ %>%
-    dplyr::select(-token) %>%
-    tidyr::unite(check, dplyr::everything(), sep = "-") %>%
-    dplyr::pull(check)
-  lgl_check_ <- vec_check_[tab_pos_[["start"]]] == vec_check_[tab_pos_[["stop"]]]
-
-  tab_pos_ %>%
-    dplyr::filter(lgl_check_) %>%
+    ) %>% dplyr::select(tid, ngram, start, stop) %>%
     dplyr::left_join(
       y  = dplyr::mutate(tab_d_, merging_id = dplyr::row_number()),
       by = c("start" = "merging_id")) %>%
