@@ -157,15 +157,41 @@ prep_document <- function(.tab, .fun_std = NULL) {
 #'
 #' @return A Dataframe
 #' @export
+#'
+# DEBUG
+# .termlist <- prep_termlist(test_termlist, string_standardization)
+# .document <- prep_document(test_document, string_standardization)
+# quos_ <- dplyr::quos(sen_id, pag_id)
 position_count <- function(.termlist, .document, ...) {
   # Define Variables --------------------------------------------------------
-  doc_id <- token <- ngram <- start <- idx <- id <- dup <- tid <- term <- NULL
+  doc_id <- token <- ngram <- start <- idx <- id <- dup <- tid <- term <-
+    tmp <- tok_id <- NULL
 
-
+  # Get Quosures ------------------------------------------------------------
   quos_ <- dplyr::quos(...)
+  quo_names_ <- as.character(unlist(quos_))
 
-  tab_d_ <- dplyr::select(.document, doc_id, !!!quos_, token)
+  if (grepl("tok_id|token", quo_names_)) {
+    stop("tok_id or token can't be text separators", call. = FALSE)
+  }
+
+  # Adjust Term List --------------------------------------------------------
+  vec_token <- unique(unlist(.termlist[["token"]]))
   lst_t_ <- split(.termlist, .termlist[["tid"]])
+
+  # Adjust Document ---------------------------------------------------------
+  tab_d_ <- .document %>%
+    dplyr::mutate(
+      token = dplyr::if_else(!token %in% vec_token, "_rem_", token)
+    ) %>%
+    dplyr::filter(!(token == "_rem_" & dplyr::lag(token) == "_rem_")) %>%
+    tidyr::unite("tmp", doc_id, !!!quos_, remove = FALSE, sep = "-") %>%
+    dplyr::mutate(
+      token = dplyr::if_else(tmp != dplyr::lead(tmp), paste0(token, "|_sep_"), token, token),
+      token = stringi::stri_split_fixed(token, "|")
+    ) %>% tidyr::unnest(token) %>%
+    dplyr::select(doc_id, tok_id, token)
+
 
   out_ <- purrr::map_dfr(
     .x = lst_t_,
@@ -185,7 +211,7 @@ position_count <- function(.termlist, .document, ...) {
 
   dplyr::left_join(out_, dup_, by = "id") %>%
     dplyr::left_join(dplyr::select(.termlist, tid, term), by = "tid")  %>%
-    dplyr::select(doc_id, !!!quos_, ngram, tid, start, stop, dup, term)
+    dplyr::select(doc_id, ngram, tid, start, stop, dup, term)
 }
 
 
