@@ -4,12 +4,12 @@
 \alias{h_position_count}
 \title{Helper Function for position_count()}
 \usage{
-h_position_count(.row_terms, .document)
+h_position_count(.row_terms, .doc)
 }
 \arguments{
 \item{.row_terms}{A one row Dataframe prepared by prep_termlist()}
 
-\item{.document}{A tokenized Dataframe prepared by prep_document()}
+\item{.doc}{A tokenized Dataframe prepared by prep_document()}
 }
 \value{
 A Dataframe
