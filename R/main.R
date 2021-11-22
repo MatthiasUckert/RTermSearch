@@ -85,7 +85,7 @@ prep_termlist <- function(.tab, .fun_std = NULL) {
 # DEBUG
 # .tab <- dplyr::bind_rows(test_document, dplyr::mutate(test_document, doc_id = "doc-2"))
 # .fun_std <- string_standardization
-prep_document <- function(test_document, .fun_std = NULL) {
+prep_document <- function(.tab, .fun_std = NULL) {
   # Define Variables --------------------------------------------------------
   doc_id <- text <- token <- pag_id <- par_id <- sen_id <- tok_id <- NULL
 
