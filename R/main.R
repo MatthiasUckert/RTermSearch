@@ -81,7 +81,7 @@ prep_termlist <- function(.tab, .fun_std = NULL) {
 #' @export
 #'
 #' @examples
-#' doc <- prep_document(.tab, string_standardization)
+#' doc <- prep_document(test_document, string_standardization)
 # DEBUG
 # .tab <- dplyr::bind_rows(test_document, dplyr::mutate(test_document, doc_id = "doc-2"))
 # .fun_std <- string_standardization
@@ -203,7 +203,12 @@ position_count <- function(.termlist, .document, ...) {
     .f = ~ h_position_count(.x, tab_d_)
   ) %>%
     dplyr::arrange(dplyr::desc(ngram)) %>%
-    dplyr::mutate(id = dplyr::row_number())
+    dplyr::mutate(id = dplyr::row_number()) %>%
+    # Change to real tok_id
+    dplyr::mutate(
+      stop = tok_id + (stop - start),
+      start = tok_id
+    )
 
   dup_ <- out_  %>%
     dplyr::mutate(
