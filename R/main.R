@@ -81,9 +81,11 @@ prep_termlist <- function(.tab, .fun_std = NULL) {
 #' @export
 #'
 #' @examples
-#' .tab <- test_document
 #' doc <- prep_document(.tab, string_standardization)
-prep_document <- function(.tab, .fun_std = NULL) {
+# DEBUG
+# .tab <- dplyr::bind_rows(test_document, dplyr::mutate(test_document, doc_id = "doc-2"))
+# .fun_std <- string_standardization
+prep_document <- function(test_document, .fun_std = NULL) {
   # Define Variables --------------------------------------------------------
   doc_id <- text <- token <- pag_id <- par_id <- sen_id <- tok_id <- NULL
 
@@ -99,37 +101,39 @@ prep_document <- function(.tab, .fun_std = NULL) {
 
   # Tokenize Dataframe ------------------------------------------------------
   tab_ <- .tab %>%
-    dplyr::group_by(doc_id) %>%
     tidytext::unnest_tokens(
       output = text,
       input = text,
       token = stringi::stri_split_regex, pattern = "\f",
       to_lower = FALSE
     ) %>%
+    dplyr::group_by(doc_id) %>%
     dplyr::mutate(pag_id = dplyr::row_number(), .before = text) %>%
-    dplyr::group_by(doc_id, pag_id) %>%
+    dplyr::ungroup() %>%
     tidytext::unnest_tokens(
       output = text,
       input = text,
       token = stringi::stri_split_regex, pattern = "\n\n",
-      to_lower = FALSE,
+      to_lower = FALSE, drop = FALSE
     ) %>%
+    dplyr::group_by(doc_id) %>%
     dplyr::mutate(par_id = dplyr::row_number()) %>%
-    dplyr::group_by(doc_id, pag_id, par_id) %>%
+    dplyr::ungroup() %>%
     tidytext::unnest_tokens(
       output = text,
       input = text,
       token = "sentences",
       to_lower = FALSE
     ) %>%
-    dplyr::mutate(sen_id = dplyr::row_number())
+    dplyr::group_by(doc_id) %>%
+    dplyr::mutate(sen_id = dplyr::row_number()) %>%
+    dplyr::ungroup()
 
   if (!is.null(.fun_std)) {
     tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
   }
 
-  tab_ %>%
-    dplyr::group_by(doc_id, pag_id, par_id, sen_id) %>%
+  tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = token,
       input = text,
@@ -138,9 +142,10 @@ prep_document <- function(.tab, .fun_std = NULL) {
       to_lower = FALSE
     ) %>%
     dplyr::filter(!token == "") %>%
+    dplyr::group_by(doc_id) %>%
     dplyr::mutate(tok_id = dplyr::row_number()) %>%
-    dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token, dplyr::everything()) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token, dplyr::everything())
 }
 
 #
