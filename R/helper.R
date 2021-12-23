@@ -42,7 +42,7 @@ h_position_count <- function(.row_terms, .doc) {
 
   if (len_t_== 1) {
     tab_pos_ <- tibble::tibble(
-      start = which(tab_d_[["text"]] == vec_t_)
+      start = which(tab_d_[["token"]] == vec_t_)
     )
   } else {
     tab_pos_ <- tibble::tibble(
