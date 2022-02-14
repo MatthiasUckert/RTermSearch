@@ -1,14 +1,32 @@
 ## code to prepare `test_termlist` dataset goes here
 library(tidyverse)
-test_termlist <- tribble(
-  ~tid, ~term,
-  1, "Language Processing",
-  2, "Natural Language Processing",
-  3, "Linguistics",
-  4, "Computer Linguistics",
-  5, "Lemmatization",
-  6, "Lexical Semantics",
-  7, "Semantics"
+table_termlist_short <- tribble(
+  ~term,
+  "Language Processing",
+  "Natural Language Processing",
+  "Linguistics",
+  "Computer Linguistics",
+  "Lemmatization",
+  "Lexical Semantics",
+  "Semantics"
 )
 
-usethis::use_data(test_termlist, overwrite = TRUE)
+table_termlist_long <- tribble(
+  ~term,
+  "Language Processing",
+  "Natural Language Processing",
+  "Linguistics",
+  "Computer Linguistics",
+  "Lemmatization",
+  "Lexical Semantics",
+  "NLP",
+  "Semantics",
+  "Research",
+  "Neural Network",
+  "Statistics",
+  "Machine Learning"
+
+)
+
+usethis::use_data(table_termlist_short, overwrite = TRUE)
+usethis::use_data(table_termlist_long, overwrite = TRUE)

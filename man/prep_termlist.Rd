@@ -2,23 +2,25 @@
 % Please edit documentation in R/main.R
 \name{prep_termlist}
 \alias{prep_termlist}
-\title{Prepare Term List}
+\title{Prepare Termlist}
 \usage{
 prep_termlist(.tab, .fun_std = NULL)
 }
 \arguments{
-\item{.tab}{A Dataframe with at least 2 columns (tid: Term ID, term: Term)}
+\item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
-\item{.fun_std}{A function to standardize Strings. Default = NULL (no standardization use)}
+\item{.fun_std}{A
+function to standardize Strings. Default = NULL (no standardization use)}
 }
 \value{
-A Dataframe with a term list column
+A Dataframe
 }
 \description{
-Prepare Term List
+Prepare Termlist
 }
 \examples{
 
-termlist <- test_termlist
-prep_termlist(termlist)
+prep_termlist(table_termlist_short, NULL)
+prep_termlist(table_termlist_short, string_standardization)
+
 }

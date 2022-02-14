@@ -2,9 +2,9 @@
 % Please edit documentation in R/main.R
 \name{position_count}
 \alias{position_count}
-\title{Retrieve Position of Terms in Documents}
+\title{Get Position of Terms}
 \usage{
-position_count(.termlist, .document, ...)
+position_count(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL)
 }
 \arguments{
 \item{.termlist}{A term list prepared by prep_termlist()}
@@ -12,10 +12,33 @@ position_count(.termlist, .document, ...)
 \item{.document}{A tokenized Dataframe prepared by prep_document()}
 
 \item{...}{Any number of Columns that mark a separator of tokens (e.g. a sentence)}
+
+\item{.cache_terms}{If Terms should be cached in the dataframe ()}
+
+\item{.tab_pos}{If already cached terms, only new terms will be calculated}
 }
 \value{
 A Dataframe
 }
 \description{
-Retrieve Position of Terms in Documents
+Get Position of Terms
+}
+\examples{
+termlist_short <- prep_termlist(table_termlist_short, string_standardization)
+termlist_long  <- prep_termlist(table_termlist_long, string_standardization)
+document       <- prep_document(table_document, string_standardization)
+
+tab_pos_short <- position_count(
+  termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
+  )
+
+tab_pos_long1  <- position_count(
+  termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
+)
+
+tab_pos_long2  <- position_count(
+  termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
+)
+all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
+
 }

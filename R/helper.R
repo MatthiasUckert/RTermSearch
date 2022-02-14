@@ -15,10 +15,12 @@
 
 find_seq_in_seq <- function(.seq_find, .seq_base) {
   w <- seq_along(.seq_base)
+
   for (i in seq_along(.seq_find)) {
     w <- w[.seq_base[w + i - 1L] == .seq_find[i]]
     if (length(w) == 0) return(integer(0))
   }
+
   w <- w[!is.na(w)]
   return(w)
 }
@@ -60,4 +62,87 @@ h_position_count <- function(.row_terms, .doc) {
       y  = dplyr::mutate(tab_d_, merging_id = dplyr::row_number()),
       by = c("start" = "merging_id")) %>%
     dplyr::select(-token)
+}
+
+
+#' Helper Function: Prepare termlist
+#'
+#' @param .tab A Dataframe with a column 'term'
+#' @param .fun_std standardization function
+#'
+#' @return A Datframe
+h_prep_termlist <- function(.tab, .fun_std = NULL) {
+
+
+
+  # Define Variables --------------------------------------------------------
+  token <- tid <- ngram <- term_orig <- oid <- term <- n_dup <- NULL
+
+  # Check Columns in Dataframe ----------------------------------------------
+  if (!"term" %in% colnames(.tab)) {
+    stop("Input MUST contain the column 'term'", call. = FALSE)
+  }
+
+  # Standardize Terms -------------------------------------------------------
+  if (!is.null(.fun_std)) {
+    tab_ <- dplyr::mutate(.tab, term_orig = term, term = .fun_std(term))
+  } else {
+    tab_ <- dplyr::mutate(.tab, term_orig = term)
+  }
+
+
+  # Check if Terms are unique -----------------------------------------------
+  if (any(duplicated(tab_[["term"]]))) {
+    stop(
+      "AFTER standardization, the column 'term' contains duplicates,
+      please call the function check_termlist() for more information.",
+      call. = FALSE
+    )
+  }
+
+  # Prepare Termlist --------------------------------------------------------
+  tab_ %>%
+    dplyr::mutate(
+      token = stringi::stri_split_fixed(term, " "),
+      tid   = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
+      oid   = purrr::map(token, ~ seq_len(length(.x))),
+      ngram = lengths(token)
+    ) %>%
+    dplyr::select(tid, ngram, term_orig, term, oid, token)
+
+}
+
+
+#' Helper Function: Get Term Dependencies
+#'
+#' @param .termlist A Datframe produced by h_prep_termlist()
+#'
+#' @return A Dataframe
+h_dependencies_termlist <- function(.termlist) {
+  tid <- token <- oid <- sep <- start <- pos <- tok_id <- tid_ <-
+    child_pos <- NULL
+
+  doc_ <- .termlist %>%
+    dplyr::select(sep = tid, token, oid) %>%
+    tidyr::unnest(c(oid, token)) %>%
+    # Columns to use the position_count() function
+    dplyr::mutate(tok_id = dplyr::row_number(), doc_id = 1)
+
+  cnt_ <- position_count(.termlist, doc_, sep) %>%
+    dplyr::mutate(pos = purrr::map2(start, stop, ~ .x:.y)) %>%
+    dplyr::select(tid, pos) %>%
+    tidyr::unnest(pos) %>%
+    dplyr::left_join(dplyr::select(doc_, tid_ = sep, pos = tok_id, oid), by = "pos") %>%
+    dplyr::filter(!tid == tid_) %>%
+    dplyr::group_by(tid_, tid) %>%
+    dplyr::summarise(child_pos = list(oid), .groups = "drop") %>%
+    dplyr::group_by(tid_) %>%
+    dplyr::summarise(
+      child_tid = list(tid),
+      child_pos = list(child_pos),
+      .groups = "drop"
+    )
+
+  dplyr::left_join(.termlist, cnt_, by = c("tid" = "tid_"))
+
 }
