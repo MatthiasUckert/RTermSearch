@@ -544,7 +544,7 @@ string_standardization <- function(.str) {
     stringi::stri_escape_unicode() %>%
     stringi::stri_enc_toascii() %>%
     tolower() %>%
-    stringi::stri_replace_all_regex("([[:blank:]]|[[:space:]])+", " ") %>%
     stringi::stri_replace_all_regex("[[:punct:]]", " ") %>%
+    stringi::stri_replace_all_regex("([[:blank:]]|[[:space:]])+", " ") %>%
     trimws()
 }
