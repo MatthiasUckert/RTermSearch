@@ -347,12 +347,12 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-
-.termlist <- prep_termlist(table_termlist_long, string_standardization)
-.document <- prep_document(table_document, string_standardization)
-.cache_terms = TRUE
-.tab_pos = NULL
-quos_ <- dplyr::quos()
+#
+# .termlist <- prep_termlist(table_termlist_long, string_standardization)
+# .document <- prep_document(table_document, string_standardization)
+# .cache_terms = TRUE
+# .tab_pos = NULL
+# quos_ <- dplyr::quos()
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
 
   tid <- token <- pos <- tok_id <- ngram <- term <- oid <- group <- dup <-
