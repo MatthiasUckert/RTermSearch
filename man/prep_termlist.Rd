@@ -24,5 +24,5 @@ Prepare Termlist
 
 prep_termlist(table_termlist_short, NULL)
 prep_termlist(table_termlist_short, string_standardization)
-
+prep_termlist(table_termlist_short, string_standardization, TRUE)
 }

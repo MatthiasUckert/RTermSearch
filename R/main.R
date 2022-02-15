@@ -335,6 +335,10 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
 #'   )
 #'
+#' tab_pos_short <- position_count(
+#'   termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL
+#'   )
+#'
 #' tab_pos_long1  <- position_count(
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
 #' )
@@ -343,7 +347,10 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-#'
+
+# .termlist <- termlist_short
+# .document <- document
+# quos_ <- dplyr::quos()
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
 
   tid <- token <- pos <- tok_id <- ngram <- term <- oid <- group <- dup <-
@@ -400,11 +407,17 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
       start = dplyr::first(pos),
       stop = dplyr::last(pos),
       dup  = any(dup),
-      dplyr::across(dplyr::matches(quos_reg_), ~ length(unique(.)) == 1),
       doc_id = doc_[["doc_id"]][1],
       .groups = "drop"
-    ) %>%
-    dplyr::filter(dplyr::if_all(dplyr::matches(quos_reg_))) %>%
+    )
+
+  if (!length(quos_) == 0) {
+    tab_ <- tab_ %>%
+      dplyr::mutate(dplyr::across(dplyr::matches(quos_reg_), ~ length(unique(.)) == 1)) %>%
+      dplyr::filter(dplyr::if_all(dplyr::matches(quos_reg_)))
+  }
+
+  tab_ <- tab_ %>%
     dplyr::select(doc_id, tid, start, stop, dup) %>%
     dplyr::arrange(tid, start)
 

@@ -32,6 +32,10 @@ tab_pos_short <- position_count(
   termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
   )
 
+tab_pos_short <- position_count(
+  termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL
+  )
+
 tab_pos_long1  <- position_count(
   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
 )
@@ -40,5 +44,4 @@ tab_pos_long2  <- position_count(
   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 )
 all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-
 }
