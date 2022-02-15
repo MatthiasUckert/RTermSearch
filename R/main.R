@@ -131,7 +131,9 @@ check_termlist <- function(.tab, .fun_std = NULL) {
 #' @param .tab
 #' A Dataframe with at least 1 column (term: Term)
 #' @param .fun_std A
-#'  function to standardize Strings. Default = NULL (no standardization use)
+#' Function to standardize Strings. Default = NULL (no standardization use)
+#' @param .get_dep
+#' Get Term List Dependencies (default = FALSE)
 #'
 #' @return A Dataframe
 #' @export
@@ -140,11 +142,15 @@ check_termlist <- function(.tab, .fun_std = NULL) {
 #'
 #' prep_termlist(table_termlist_short, NULL)
 #' prep_termlist(table_termlist_short, string_standardization)
-#'
-prep_termlist <- function(.tab, .fun_std = NULL) {
-  .tab %>%
-    h_prep_termlist(.fun_std) %>%
-    h_dependencies_termlist()
+#' prep_termlist(table_termlist_short, string_standardization, TRUE)
+prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE) {
+  tab_ <- h_prep_termlist(.tab, .fun_std)
+
+  if (.get_dep) {
+    tab_ <- h_dependencies_termlist(tab_)
+  }
+
+  return(tab_)
 }
 
 

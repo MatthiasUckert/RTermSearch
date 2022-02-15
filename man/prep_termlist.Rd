@@ -4,13 +4,15 @@
 \alias{prep_termlist}
 \title{Prepare Termlist}
 \usage{
-prep_termlist(.tab, .fun_std = NULL)
+prep_termlist(.tab, .fun_std = NULL, .get_dep = FALSE)
 }
 \arguments{
 \item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
 \item{.fun_std}{A
-function to standardize Strings. Default = NULL (no standardization use)}
+Function to standardize Strings. Default = NULL (no standardization use)}
+
+\item{.get_dep}{Get Term List Dependencies (default = FALSE)}
 }
 \value{
 A Dataframe
