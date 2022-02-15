@@ -348,9 +348,11 @@ position_count_old <- function(.termlist, .document, ...) {
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
 
-# .termlist <- termlist_short
-# .document <- document
-# quos_ <- dplyr::quos()
+.termlist <- prep_termlist(table_termlist_long, string_standardization)
+.document <- prep_document(table_document, string_standardization)
+.cache_terms = TRUE
+.tab_pos = NULL
+quos_ <- dplyr::quos()
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
 
   tid <- token <- pos <- tok_id <- ngram <- term <- oid <- group <- dup <-
@@ -393,7 +395,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
   tab_ <- term_list_ %>%
     dplyr::select(tid, ngram, term, oid, token) %>%
     tidyr::unnest(c(oid, token)) %>%
-    dplyr::left_join(tab_pos_, by = "token") %>%
+    dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(tid, pos, oid) %>%
     dplyr::group_by(tid, group = cumsum(oid == 1)) %>%
     dplyr::filter(c(1, diff(oid)) == 1) %>%
