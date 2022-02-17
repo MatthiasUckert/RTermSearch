@@ -13,7 +13,7 @@ text: Document text\cr
 
 IMPORTANT NOTE: Dataframe must contain only one row per doc_id}
 
-\item{.fun_std}{A function to standardize Strings. Default = NULL (no standardization use)}
+\item{.fun_std}{A function to standardize strings. Default = NULL (no standardization use)}
 }
 \value{
 A Dataframe with the following columns:\cr
@@ -25,7 +25,7 @@ tok_id: Token ID\cr
 token: Token (tokenized using white spaces)
 }
 \description{
-Perpare Documents
+Prepare Documents
 }
 \examples{
 doc <- prep_document(table_document, string_standardization)
