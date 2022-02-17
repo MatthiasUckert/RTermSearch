@@ -326,6 +326,8 @@ position_count_old <- function(.termlist, .document, ...) {
 #' @return A Dataframe
 #' @export
 #'
+#' @import data.table
+#'
 #' @examples
 #' termlist_short <- prep_termlist(table_termlist_short, string_standardization)
 #' termlist_long  <- prep_termlist(table_termlist_long, string_standardization)
@@ -347,13 +349,14 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-#
+
 # .termlist <- prep_termlist(table_termlist_long, string_standardization)
 # .document <- prep_document(table_document, string_standardization)
 # .cache_terms = TRUE
 # .tab_pos = NULL
 # quos_ <- dplyr::quos()
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
+
 
   tid <- token <- pos <- tok_id <- ngram <- term <- oid <- group <- dup <-
     doc_id <- start <- tmp <- NULL
@@ -395,6 +398,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
   tab_ <- term_list_ %>%
     dplyr::select(tid, ngram, term, oid, token) %>%
     tidyr::unnest(c(oid, token)) %>%
+    dtplyr::lazy_dt() %>%
     dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(tid, pos, oid) %>%
     dplyr::group_by(tid, group = cumsum(oid == 1)) %>%
@@ -411,7 +415,8 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
       dup  = any(dup),
       doc_id = doc_[["doc_id"]][1],
       .groups = "drop"
-    )
+    ) %>%
+    tibble::as_tibble()
 
   if (!length(quos_) == 0) {
     tab_ <- tab_ %>%
