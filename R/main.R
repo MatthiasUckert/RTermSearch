@@ -349,6 +349,7 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
+
 # .termlist <- prep_termlist(table_termlist_short, string_standardization)
 # .document <- prep_document(table_document, string_standardization)
 # .cache_terms = TRUE
@@ -401,7 +402,6 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dtplyr::lazy_dt() %>%
     dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(tid, pos, oid) %>%
-    dplyr::filter(tid == "e10c0dad") %>%
     dplyr::group_by(tid, tmp1 = cumsum(oid == 1)) %>%
     dplyr::mutate(
       tmp2 = dplyr::if_else(dplyr::row_number() > ngram, NA_integer_, tmp1)
