@@ -122,7 +122,7 @@ h_prep_termlist <- function(.tab, .fun_std = NULL) {
 # .termlist <- h_prep_termlist(table_termlist_long)
 h_dependencies_termlist <- function(.termlist) {
   hash <- token <- oid <- sep <- start <- pos <- tok_id <- hash_ <-
-    child_pos <- child_hash <- child_hash <- NULL
+    child_pos <- child_hash <- dep <- NULL
 
   doc_ <- .termlist %>%
     dplyr::select(sep = hash, token, oid) %>%
