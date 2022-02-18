@@ -349,12 +349,11 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-
-# .termlist <- prep_termlist(table_termlist_long, string_standardization)
-# .document <- prep_document(table_document, string_standardization)
+# .termlist <- prep_termlist(termlist, string_standardization)
+# .document <- prep_document(document, string_standardization)
 # .cache_terms = TRUE
 # .tab_pos = NULL
-# quos_ <- dplyr::quos()
+# quos_ <- dplyr::quos(sen_id)
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
 
 
@@ -402,9 +401,9 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(tid, pos, oid) %>%
     dplyr::group_by(tid, group = cumsum(oid == 1)) %>%
+    dplyr::filter(dplyr::n() == ngram) %>%
     dplyr::filter(c(1, diff(oid)) == 1) %>%
     dplyr::filter(c(1, diff(pos)) == 1) %>%
-    dplyr::filter(dplyr::n() == ngram) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(dplyr::desc(ngram), tid) %>%
     dplyr::mutate(dup = duplicated(pos)) %>%
