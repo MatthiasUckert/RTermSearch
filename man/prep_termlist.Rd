@@ -7,15 +7,15 @@
 prep_termlist(.tab, .fun_std = NULL, .get_dep = FALSE)
 }
 \arguments{
-\item{.tab}{A dataframe with at least 1 column (term: Term)}
+\item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
 \item{.fun_std}{A
-Function to standardize strings. Default = NULL (no standardization use)}
+Function to standardize Strings. Default = NULL (no standardization use)}
 
-\item{.get_dep}{Get term list dependencies (default = FALSE)}
+\item{.get_dep}{Get Term List Dependencies (default = FALSE)}
 }
 \value{
-A dataframe with one column including the terms for which the function should look for. Terms can be any combination of alphanumeric values, including n-grams. For example, search for "1970", "reporting" and "reporting frequency" is possible alike.
+A Dataframe
 }
 \description{
 Prepare Termlist
