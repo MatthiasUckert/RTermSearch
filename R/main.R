@@ -404,6 +404,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dplyr::filter(dplyr::n() == ngram) %>%
     dplyr::filter(c(1, diff(oid)) == 1) %>%
     dplyr::filter(c(1, diff(pos)) == 1) %>%
+    dplyr::filter(dplyr::n() == ngram) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(dplyr::desc(ngram), tid) %>%
     dplyr::mutate(dup = duplicated(pos)) %>%
