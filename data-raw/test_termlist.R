@@ -24,7 +24,8 @@ table_termlist_long <- tribble(
   "Research",
   "Neural Network",
   "Statistics",
-  "Machine Learning"
+  "Machine Learning",
+  "Natural"
 
 )
 

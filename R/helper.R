@@ -36,7 +36,7 @@ find_seq_in_seq <- function(.seq_find, .seq_base) {
 # .doc <- tab_d_
 h_position_count <- function(.row_terms, .doc) {
   # Define Variables --------------------------------------------------------
-  start <- tid <- ngram <- token <- check <- NULL
+  start <- hash <- ngram <- token <- check <- NULL
 
   vec_t_ <- unlist(.row_terms[["token"]])
   tab_d_ <- .doc
@@ -54,10 +54,10 @@ h_position_count <- function(.row_terms, .doc) {
 
   tab_pos_ %>%
     dplyr::mutate(
-      tid   = .row_terms[["tid"]],
+      hash   = .row_terms[["hash"]],
       stop  = start + len_t_ - 1L,
       ngram = len_t_,
-    ) %>% dplyr::select(tid, ngram, start, stop) %>%
+    ) %>% dplyr::select(hash, ngram, start, stop) %>%
     dplyr::left_join(
       y  = dplyr::mutate(tab_d_, merging_id = dplyr::row_number()),
       by = c("start" = "merging_id")) %>%
@@ -76,7 +76,7 @@ h_prep_termlist <- function(.tab, .fun_std = NULL) {
 
 
   # Define Variables --------------------------------------------------------
-  token <- tid <- ngram <- term_orig <- oid <- term <- n_dup <- NULL
+  token <- hash <- ngram <- term_orig <- oid <- term <- n_dup <- NULL
 
   # Check Columns in Dataframe ----------------------------------------------
   if (!"term" %in% colnames(.tab)) {
@@ -104,11 +104,11 @@ h_prep_termlist <- function(.tab, .fun_std = NULL) {
   tab_ %>%
     dplyr::mutate(
       token = stringi::stri_split_fixed(term, " "),
-      tid   = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
+      hash   = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
       oid   = purrr::map(token, ~ seq_len(length(.x))),
       ngram = lengths(token)
     ) %>%
-    dplyr::select(tid, ngram, term_orig, term, oid, token)
+    dplyr::select(hash, ngram, term_orig, term, oid, token)
 
 }
 
@@ -118,31 +118,36 @@ h_prep_termlist <- function(.tab, .fun_std = NULL) {
 #' @param .termlist A Datframe produced by h_prep_termlist()
 #'
 #' @return A Dataframe
+
+# .termlist <- h_prep_termlist(table_termlist_long)
 h_dependencies_termlist <- function(.termlist) {
-  tid <- token <- oid <- sep <- start <- pos <- tok_id <- tid_ <-
-    child_pos <- NULL
+  hash <- token <- oid <- sep <- start <- pos <- tok_id <- hash_ <-
+    child_pos <- child_hash <- child_hash <- NULL
 
   doc_ <- .termlist %>%
-    dplyr::select(sep = tid, token, oid) %>%
+    dplyr::select(sep = hash, token, oid) %>%
     tidyr::unnest(c(oid, token)) %>%
     # Columns to use the position_count() function
     dplyr::mutate(tok_id = dplyr::row_number(), doc_id = 1)
 
   cnt_ <- position_count(.termlist, doc_, sep) %>%
     dplyr::mutate(pos = purrr::map2(start, stop, ~ .x:.y)) %>%
-    dplyr::select(tid, pos) %>%
+    dplyr::select(hash, pos) %>%
     tidyr::unnest(pos) %>%
-    dplyr::left_join(dplyr::select(doc_, tid_ = sep, pos = tok_id, oid), by = "pos") %>%
-    dplyr::filter(!tid == tid_) %>%
-    dplyr::group_by(tid_, tid) %>%
+    dplyr::left_join(dplyr::select(doc_, hash_ = sep, pos = tok_id, oid), by = "pos") %>%
+    dplyr::filter(!hash == hash_) %>%
+    dplyr::group_by(hash_, hash) %>%
     dplyr::summarise(child_pos = list(oid), .groups = "drop") %>%
-    dplyr::group_by(tid_) %>%
+    dplyr::group_by(hash_) %>%
     dplyr::summarise(
-      child_tid = list(tid),
+      child_hash = list(hash),
       child_pos = list(child_pos),
       .groups = "drop"
-    )
+    ) %>%
+    dplyr::mutate(
+      dep = purrr::map2(child_hash, child_pos, ~ purrr::set_names(c(.y), .x))
+    ) %>% dplyr::select(hash_, dep)
 
-  dplyr::left_join(.termlist, cnt_, by = c("tid" = "tid_"))
+  dplyr::left_join(.termlist, cnt_, by = c("hash" = "hash_"))
 
 }
