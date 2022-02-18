@@ -349,15 +349,16 @@ position_count_old <- function(.termlist, .document, ...) {
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-# .termlist <- prep_termlist(termlist, string_standardization)
-# .document <- prep_document(document, string_standardization)
+# .termlist <- prep_termlist(table_termlist_short, string_standardization)
+# .document <- prep_document(table_document, string_standardization)
 # .cache_terms = TRUE
 # .tab_pos = NULL
 # quos_ <- dplyr::quos(sen_id)
+
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
 
 
-  tid <- token <- pos <- tok_id <- ngram <- term <- oid <- group <- dup <-
+  tid <- token <- pos <- tok_id <- ngram <- term <- oid <- tmp1 <- tmp2 <- dup <-
     doc_id <- start <- tmp <- NULL
 
   # Get Quosures ------------------------------------------------------------
@@ -400,15 +401,19 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dtplyr::lazy_dt() %>%
     dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(tid, pos, oid) %>%
-    dplyr::group_by(tid, group = cumsum(oid == 1)) %>%
-    dplyr::filter(dplyr::n() == ngram) %>%
+    dplyr::filter(tid == "e10c0dad") %>%
+    dplyr::group_by(tid, tmp1 = cumsum(oid == 1)) %>%
+    dplyr::mutate(
+      tmp2 = dplyr::if_else(dplyr::row_number() > ngram, NA_integer_, tmp1)
+      ) %>%
+    dplyr::filter(!is.na(tmp2)) %>%
     dplyr::filter(c(1, diff(oid)) == 1) %>%
     dplyr::filter(c(1, diff(pos)) == 1) %>%
     dplyr::filter(dplyr::n() == ngram) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(dplyr::desc(ngram), tid) %>%
     dplyr::mutate(dup = duplicated(pos)) %>%
-    dplyr::group_by(tid, group) %>%
+    dplyr::group_by(tid, tmp2) %>%
     dplyr::summarise(
       start = dplyr::first(pos),
       stop = dplyr::last(pos),
@@ -546,10 +551,10 @@ get_context <- function(.position, .document, .n, .context = c("word", "sentence
 #' string_standardization("  TesT String")
 string_standardization <- function(.str) {
   .str %>%
+    stringi::stri_replace_all_regex("[[:punct:]]", " ") %>%
+    stringi::stri_replace_all_regex("([[:blank:]]|[[:space:]])+", " ") %>%
     stringi::stri_escape_unicode() %>%
     stringi::stri_enc_toascii() %>%
     tolower() %>%
-    stringi::stri_replace_all_regex("[[:punct:]]", " ") %>%
-    stringi::stri_replace_all_regex("([[:blank:]]|[[:space:]])+", " ") %>%
     trimws()
 }

@@ -3,7 +3,7 @@ library(tidyverse)
 table_document <- readtext::readtext("data-raw/test_document.txt") %>%
   dplyr::mutate(
     doc_id = "doc-1",
-    text = stringi::stri_escape_unicode(text)
+    text = stringi::stri_enc_toascii(text)
     ) %>%
   tibble::as_tibble()
 
