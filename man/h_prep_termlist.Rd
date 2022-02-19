@@ -2,18 +2,23 @@
 % Please edit documentation in R/helper.R
 \name{h_prep_termlist}
 \alias{h_prep_termlist}
-\title{Helper Function: Prepare termlist}
+\title{Helper Function: Prepare Termlist}
 \usage{
-h_prep_termlist(.tab, .fun_std = NULL)
+h_prep_termlist(.tab, .fun_std = NULL, ...)
 }
 \arguments{
-\item{.tab}{A Dataframe with a column 'term'}
+\item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
-\item{.fun_std}{standardization function}
+\item{.fun_std}{A
+Function to standardize Strings.\cr
+Default = NULL (no standardization use)\cr
+Build-in Function .fun_std = string_standardization, can be used.}
+
+\item{...}{Any other column of the original Dataframe (.tab) you want to keep in the output}
 }
 \value{
-A Datframe
+A Dataframe
 }
 \description{
-Helper Function: Prepare termlist
+Helper Function: Prepare Termlist
 }

@@ -5,8 +5,9 @@
 \alias{table_termlist_long}
 \title{Example Term List (Long)}
 \format{
-A data frame 12 rows and 1 column
+A data frame 12 rows and 2 columns
 \describe{
+\item{tid}{A Term Identifier}
 \item{term}{A Term}
 }
 }

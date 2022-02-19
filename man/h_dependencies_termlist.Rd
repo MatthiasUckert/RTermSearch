@@ -4,10 +4,12 @@
 \alias{h_dependencies_termlist}
 \title{Helper Function: Get Term Dependencies}
 \usage{
-h_dependencies_termlist(.termlist)
+h_dependencies_termlist(.termlist, ...)
 }
 \arguments{
 \item{.termlist}{A Datframe produced by h_prep_termlist()}
+
+\item{...}{Any other column of the original Dataframe (.tab) you want to keep in the output}
 }
 \value{
 A Dataframe

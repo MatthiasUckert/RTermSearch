@@ -5,8 +5,9 @@
 \alias{table_termlist_short}
 \title{Example Term List (Short)}
 \format{
-A data frame 7 rows and 1 column
+A data frame 7 rows and 2 columns
 \describe{
+\item{tid}{A Term Identifier}
 \item{term}{A Term}
 }
 }

@@ -14,8 +14,9 @@
 #'
 #' A dataset containing example terms to be searched within a document
 #'
-#' @format A data frame 7 rows and 1 column
+#' @format A data frame 7 rows and 2 columns
 #' \describe{
+#'   \item{tid}{A Term Identifier}
 #'   \item{term}{A Term}
 #' }
 "table_termlist_short"
@@ -24,8 +25,9 @@
 #'
 #' A dataset containing example terms to be searched within a document
 #'
-#' @format A data frame 12 rows and 1 column
+#' @format A data frame 12 rows and 2 columns
 #' \describe{
+#'   \item{tid}{A Term Identifier}
 #'   \item{term}{A Term}
 #' }
 "table_termlist_long"

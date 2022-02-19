@@ -65,15 +65,28 @@ h_position_count <- function(.row_terms, .doc) {
 }
 
 
-#' Helper Function: Prepare termlist
+#' Helper Function: Prepare Termlist
 #'
-#' @param .tab A Dataframe with a column 'term'
-#' @param .fun_std standardization function
+#' @param .tab
+#' A Dataframe with at least 1 column (term: Term)
+#' @param .fun_std A
+#' Function to standardize Strings.\cr
+#' Default = NULL (no standardization use)\cr
+#' Build-in Function .fun_std = string_standardization, can be used.
+#' @param ...
+#' Any other column of the original Dataframe (.tab) you want to keep in the output
 #'
-#' @return A Datframe
-h_prep_termlist <- function(.tab, .fun_std = NULL) {
+#' @return
+#' A Dataframe
 
+# DEBUG
+# .tab     <- table_termlist_short
+# .fun_std <- string_standardization
+# quos_    <- dplyr::quo(tid)
+h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
 
+  # Get Quosures ------------------------------------------------------------
+  quos_ <- dplyr::quos(...)
 
   # Define Variables --------------------------------------------------------
   token <- hash <- ngram <- term_orig <- oid <- term <- n_dup <- NULL
@@ -108,21 +121,32 @@ h_prep_termlist <- function(.tab, .fun_std = NULL) {
       oid   = purrr::map(token, ~ seq_len(length(.x))),
       ngram = lengths(token)
     ) %>%
-    dplyr::select(hash, ngram, term_orig, term, oid, token)
+    dplyr::select(hash, ngram, term_orig, term, oid, token, !!!quos_)
 
 }
 
 
 #' Helper Function: Get Term Dependencies
 #'
-#' @param .termlist A Datframe produced by h_prep_termlist()
+#' @param .termlist
+#' A Datframe produced by h_prep_termlist()
+#' @param ...
+#' Any other column of the original Dataframe (.tab) you want to keep in the output
 #'
-#' @return A Dataframe
+#' @return
+#' A Dataframe
 
-# .termlist <- h_prep_termlist(table_termlist_long)
-h_dependencies_termlist <- function(.termlist) {
+# DEBUG: h_dependencies_termlist() ----------------------------------------
+# .termlist <- h_prep_termlist(table_termlist_long, NULL, tid)
+# quos_     <- dplyr::quo(tid)
+h_dependencies_termlist <- function(.termlist, ...) {
+
+  # Get Quosures ------------------------------------------------------------
+  quos_ <- dplyr::quos(...)
+
+  # Define Variables --------------------------------------------------------
   hash <- token <- oid <- sep <- start <- pos <- tok_id <- hash_ <-
-    child_pos <- child_hash <- dep <- NULL
+    child_pos <- child_hash <- dep <- ngram <- term_orig <- term <- NULL
 
   doc_ <- .termlist %>%
     dplyr::select(sep = hash, token, oid) %>%
@@ -148,6 +172,8 @@ h_dependencies_termlist <- function(.termlist) {
       dep = purrr::map2(child_hash, child_pos, ~ purrr::set_names(c(.y), .x))
     ) %>% dplyr::select(hash_, dep)
 
-  dplyr::left_join(.termlist, cnt_, by = c("hash" = "hash_"))
+  .termlist %>%
+    dplyr::left_join(cnt_, by = c("hash" = "hash_")) %>%
+    dplyr::select(hash, ngram, term_orig, term, oid, token, dep, !!!quos_)
 
 }

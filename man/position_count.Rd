@@ -18,22 +18,27 @@ position_count(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL)
 \item{.tab_pos}{If already cached terms, only new terms will be calculated}
 }
 \value{
-A Dataframe
+A Dataframe 5 columns:
+doc_id: Document ID of the dataframe in argument .document prepared by prep_document()\cr
+hash: Hash value of the terms in argument .termlist prepared by prep_termlist()\cr
+start: Starting value (tok_id in .document) of the term\cr
+stop: Ending value (tok_id in .document) of the term\cr\cr
+dup: Logical indicator if term is contained in higher N-Gram and has already been found
 }
 \description{
 Get Position of Terms
 }
 \examples{
-termlist_short <- prep_termlist(table_termlist_short, string_standardization)
+termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
 termlist_long  <- prep_termlist(table_termlist_long, string_standardization)
 document       <- prep_document(table_document, string_standardization)
 
 tab_pos_short <- position_count(
-  termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
+  termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL
   )
 
 tab_pos_short <- position_count(
-  termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL
+  termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
   )
 
 tab_pos_long1  <- position_count(

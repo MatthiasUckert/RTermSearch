@@ -10,19 +10,27 @@ check_termlist(.tab, .fun_std = NULL)
 \item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
 \item{.fun_std}{A
-function to standardize Strings. Default = NULL (no standardization use)}
+Function to standardize Strings.\cr
+Default = NULL (no standardization use)\cr
+Build-in Function .fun_std = string_standardization, can be used.}
 }
 \value{
-Dataframe and Messages/Warnings
+Case 1: No Duplicates: A Message with Dependency Factor (unique terms / all terms)\cr
+Case 2: A Warning Message and a Dataframe with duplicated values (AFTER STANDARDIZATION)
 }
 \description{
 Check Termlist
 }
 \examples{
+# Example w/o standardization
 check_termlist(table_termlist_short, NULL)
+# Example with standardization
 check_termlist(table_termlist_short, string_standardization)
 
+# Example w/o standardization and duplicated term
 termlist <- tibble::add_row(table_termlist_short, term = "Language-Processing")
 check_termlist(termlist, NULL)
+
+# Example with standardization and duplicated term
 check_termlist(termlist, string_standardization)
 }

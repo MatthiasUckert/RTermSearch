@@ -7,8 +7,9 @@
 get_context(
   .position,
   .document,
-  .n,
-  .context = c("word", "sentence", "paragraph", "page")
+  .n = NA,
+  .context = c("word", "sentence", "paragraph", "page"),
+  .vars = c("none", "sentence", "paragraph", "page")
 )
 }
 \arguments{
@@ -16,9 +17,12 @@ get_context(
 
 \item{.document}{A Dataframe produced by prep_document()}
 
-\item{.n}{Number of context token to retrieve}
+\item{.n}{Number of context token to retrieve, default = NA, which means no token context is retrieved}
 
 \item{.context}{either "word", "sentence", "paragraph", or "page"}
+
+\item{.vars}{Any combination of "sentence", "paragraph", and "page" (get the specific locations of hits)\cr
+If not specified, no variable context is retrieved}
 }
 \value{
 A dataframe
@@ -27,13 +31,14 @@ A dataframe
 Get Context
 }
 \examples{
-termlist_short <- prep_termlist(table_termlist_short, string_standardization)
+termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
 document       <- prep_document(table_document, string_standardization)
 
 tab_pos_short <- position_count(
   termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
 )
 
-tab_context_word <- get_context(tab_pos_short, document, 5, "word")
+tab_context_word     <- get_context(tab_pos_short, document, 5, "word")
 tab_context_sentence <- get_context(tab_pos_short, document, 1, "sentence")
+tab_context_vars     <- get_context(tab_pos_short, document, .vars = "sentence")
 }
