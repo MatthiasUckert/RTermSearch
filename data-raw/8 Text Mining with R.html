@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>8 Case study: mining NASA metadata | Text Mining with R</title>
+<meta name="author" content="Julia Silge and David Robinson">
+<meta name="description" content="There are over 32,000 datasets hosted and/or maintained by NASA; these datasets cover topics from Earth science to aerospace engineering to management of NASA itself. We can use the metadata for...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="8 Case study: mining NASA metadata | Text Mining with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://www.tidytextmining.com/nasa.html">
+<meta property="og:image" content="https://www.tidytextmining.com/images/cover.png">
+<meta property="og:description" content="There are over 32,000 datasets hosted and/or maintained by NASA; these datasets cover topics from Earth science to aerospace engineering to management of NASA itself. We can use the metadata for...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="8 Case study: mining NASA metadata | Text Mining with R">
+<meta name="twitter:description" content="There are over 32,000 datasets hosted and/or maintained by NASA; these datasets cover topics from Earth science to aerospace engineering to management of NASA itself. We can use the metadata for...">
+<meta name="twitter:image" content="https://www.tidytextmining.com/images/cover.png">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-68765210-2', 'auto');
+    ga('send', 'pageview');
+  
+  </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="A Tidy Approach">Text Mining with R</a>:
+        <small class="text-muted">A Tidy Approach</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome to Text Mining with R</a></li>
+<li><a class="" href="preface.html">Preface</a></li>
+<li><a class="" href="tidytext.html"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="" href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></li>
+<li><a class="" href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="" href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li><a class="" href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li><a class="" href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></li>
+<li><a class="" href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></li>
+<li><a class="active" href="nasa.html"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li><a class="" href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">10</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dgrtwo/tidy-text-mining">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="nasa" class="section level1">
+<h1>
+<span class="header-section-number">8</span> Case study: mining NASA metadata<a class="anchor" aria-label="anchor" href="#nasa"><i class="fas fa-link"></i></a>
+</h1>
+<p>There are over 32,000 datasets hosted and/or maintained by <a href="https://www.nasa.gov/">NASA</a>; these datasets cover topics from Earth science to aerospace engineering to management of NASA itself. We can use the metadata for these datasets to understand the connections between them.</p>
+<div class="rmdnote">
+<p>
+What is metadata? Metadata is a term that refers to data that gives information about other data; in this case, the metadata informs users about what is in these numerous NASA datasets but does not include the content of the datasets themselves.
+</p>
+</div>
+<p>The metadata includes information like the title of the dataset, a description field, what organization(s) within NASA is responsible for the dataset, keywords for the dataset that have been assigned by a human being, and so forth. NASA places a high priority on making its data open and accessible, even requiring all NASA-funded research to be <a href="https://www.nasa.gov/press-release/nasa-unveils-new-public-web-portal-for-research-results">openly accessible online</a>. The metadata for all its datasets is <a href="https://data.nasa.gov/data.json">publicly available online in JSON format</a>.</p>
+<p>In this chapter, we will treat the NASA metadata as a text dataset and show how to implement several tidy text approaches with this real-life text. We will use word co-occurrences and correlations, tf-idf, and topic modeling to explore the connections between the datasets. Can we find datasets that are related to each other? Can we find clusters of similar datasets? Since we have several text fields in the NASA metadata, most importantly the title, description, and keyword fields, we can explore the connections between the fields to better understand the complex world of data at NASA. This type of approach can be extended to any domain that deals with text, so let’s take a look at this metadata and get started.</p>
+<div id="how-data-is-organized-at-nasa" class="section level2">
+<h2>
+<span class="header-section-number">8.1</span> How data is organized at NASA<a class="anchor" aria-label="anchor" href="#how-data-is-organized-at-nasa"><i class="fas fa-link"></i></a>
+</h2>
+<p>First, let’s download the JSON file and take a look at the names of what is stored in the metadata.</p>
+<div class="sourceCode" id="cb160"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://arxiv.org/abs/1403.2805">jsonlite</a></span><span class="op">)</span>
+<span class="va">metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/jsonlite/man/fromJSON.html">fromJSON</a></span><span class="op">(</span><span class="st">"https://data.nasa.gov/data.json"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">)</span></code></pre></div>
+<pre><code>#&gt;  [1] "_id"                "@type"              "accessLevel"       
+#&gt;  [4] "accrualPeriodicity" "bureauCode"         "contactPoint"      
+#&gt;  [7] "description"        "distribution"       "identifier"        
+#&gt; [10] "issued"             "keyword"            "landingPage"       
+#&gt; [13] "language"           "modified"           "programCode"       
+#&gt; [16] "publisher"          "spatial"            "temporal"          
+#&gt; [19] "theme"              "title"              "license"           
+#&gt; [22] "isPartOf"           "references"         "rights"            
+#&gt; [25] "describedBy"</code></pre>
+<p>We see here that we could extract information from who publishes each dataset to what license they are released under.</p>
+<p>It seems likely that the title, description, and keywords for each dataset may be most fruitful for drawing connections between datasets. Let’s check them out.</p>
+<div class="sourceCode" id="cb162"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">title</span><span class="op">)</span>
+<span class="co">#&gt; [1] "character"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">description</span><span class="op">)</span>
+<span class="co">#&gt; [1] "character"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">keyword</span><span class="op">)</span>
+<span class="co">#&gt; [1] "list"</span></code></pre></div>
+<p>The title and description fields are stored as character vectors, but the keywords are stored as a list of character vectors.</p>
+<div id="wrangling-and-tidying-the-data" class="section level3">
+<h3>
+<span class="header-section-number">8.1.1</span> Wrangling and tidying the data<a class="anchor" aria-label="anchor" href="#wrangling-and-tidying-the-data"><i class="fas fa-link"></i></a>
+</h3>
+<p>Let’s set up separate tidy data frames for title, description, and keyword, keeping the dataset ids for each so that we can connect them later in the analysis if necessary.</p>
+<div class="sourceCode" id="cb163"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+
+<span class="va">nasa_title</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">`_id`</span><span class="op">$</span><span class="va">`$oid`</span>, 
+                     title <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">title</span><span class="op">)</span>
+<span class="va">nasa_title</span>
+<span class="co">#&gt; # A tibble: 32,089 × 2</span>
+<span class="co">#&gt;    id                       title                                              </span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt;                                              </span>
+<span class="co">#&gt;  1 55942a57c63a7fe59b495a77 15 Minute Stream Flow Data: USGS (FIFE)            </span>
+<span class="co">#&gt;  2 55942a57c63a7fe59b495a78 15 Minute Stream Flow Data: USGS (FIFE)            </span>
+<span class="co">#&gt;  3 55942a58c63a7fe59b495a79 15 Minute Stream Flow Data: USGS (FIFE)            </span>
+<span class="co">#&gt;  4 55942a58c63a7fe59b495a7a 2000 Pilot Environmental Sustainability Index (ESI)</span>
+<span class="co">#&gt;  5 55942a58c63a7fe59b495a7b 2000 Pilot Environmental Sustainability Index (ESI)</span>
+<span class="co">#&gt;  6 55942a58c63a7fe59b495a7c 2000 Pilot Environmental Sustainability Index (ESI)</span>
+<span class="co">#&gt;  7 55942a58c63a7fe59b495a7d 2001 Environmental Sustainability Index (ESI)      </span>
+<span class="co">#&gt;  8 55942a58c63a7fe59b495a7e 2001 Environmental Sustainability Index (ESI)      </span>
+<span class="co">#&gt;  9 55942a58c63a7fe59b495a7f 2001 Environmental Sustainability Index (ESI)      </span>
+<span class="co">#&gt; 10 55942a58c63a7fe59b495a80 2001 Environmental Sustainability Index (ESI)      </span>
+<span class="co">#&gt; # … with 32,079 more rows</span></code></pre></div>
+<p>These are just a few example titles from the datasets we will be exploring. Notice that we have the NASA-assigned ids here, and also that there are duplicate titles on separate datasets.</p>
+<div class="sourceCode" id="cb164"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_desc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">`_id`</span><span class="op">$</span><span class="va">`$oid`</span>, 
+                    desc <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">description</span><span class="op">)</span>
+
+<span class="va">nasa_desc</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">desc</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html">sample_n</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 5 × 1</span>
+<span class="co">#&gt;   desc                                                                          </span>
+<span class="co">#&gt;   &lt;chr&gt;                                                                         </span>
+<span class="co">#&gt; 1 "Optical Fiber Microsensors for Monitoring Protein Crystal Growth Project"    </span>
+<span class="co">#&gt; 2 "The SeaWiFS instrument was launched by Orbital Sciences Corporation on the O…</span>
+<span class="co">#&gt; 3 "Version 2.0 Aquarius Level 3 Wind Speed Standard Mapped Image Ascending Dail…</span>
+<span class="co">#&gt; 4 "In this Phase 2 project, we propose to develop, construct, and deliver to NA…</span>
+<span class="co">#&gt; 5 "As space missions become more complex and as mission demands increase, robot…</span></code></pre></div>
+<p>Here we see the first part of several selected description fields from the metadata.</p>
+<p>Now we can build the tidy data frame for the keywords. For this one, we need to use <code><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest()</a></code> from tidyr, because they are in a list-column.</p>
+<div class="sourceCode" id="cb165"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
+
+<span class="va">nasa_keyword</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">`_id`</span><span class="op">$</span><span class="va">`$oid`</span>, 
+                       keyword <span class="op">=</span> <span class="va">metadata</span><span class="op">$</span><span class="va">dataset</span><span class="op">$</span><span class="va">keyword</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="va">keyword</span><span class="op">)</span>
+
+<span class="va">nasa_keyword</span>
+<span class="co">#&gt; # A tibble: 126,814 × 2</span>
+<span class="co">#&gt;    id                       keyword      </span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt;        </span>
+<span class="co">#&gt;  1 55942a57c63a7fe59b495a77 EARTH SCIENCE</span>
+<span class="co">#&gt;  2 55942a57c63a7fe59b495a77 HYDROSPHERE  </span>
+<span class="co">#&gt;  3 55942a57c63a7fe59b495a77 SURFACE WATER</span>
+<span class="co">#&gt;  4 55942a57c63a7fe59b495a78 EARTH SCIENCE</span>
+<span class="co">#&gt;  5 55942a57c63a7fe59b495a78 HYDROSPHERE  </span>
+<span class="co">#&gt;  6 55942a57c63a7fe59b495a78 SURFACE WATER</span>
+<span class="co">#&gt;  7 55942a58c63a7fe59b495a79 EARTH SCIENCE</span>
+<span class="co">#&gt;  8 55942a58c63a7fe59b495a79 HYDROSPHERE  </span>
+<span class="co">#&gt;  9 55942a58c63a7fe59b495a79 SURFACE WATER</span>
+<span class="co">#&gt; 10 55942a58c63a7fe59b495a7a EARTH SCIENCE</span>
+<span class="co">#&gt; # … with 126,804 more rows</span></code></pre></div>
+<p>This is a tidy data frame because we have one row for each keyword; this means we will have multiple rows for each dataset because a dataset can have more than one keyword.</p>
+<p>Now it is time to use tidytext’s <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> for the title and description fields so we can do the text analysis. Let’s also remove stop words from the titles and descriptions. We will not remove stop words from the keywords, because those are short, human-assigned keywords like “RADIATION” or “CLIMATE INDICATORS”.</p>
+<div class="sourceCode" id="cb166"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+
+<span class="va">nasa_title</span> <span class="op">&lt;-</span> <span class="va">nasa_title</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">title</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span>
+
+<span class="va">nasa_desc</span> <span class="op">&lt;-</span> <span class="va">nasa_desc</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">desc</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span></code></pre></div>
+<p>These are now in the tidy text format that we have been working with throughout this book, with one token (word, in this case) per row; let’s take a look before we move on in our analysis.</p>
+<div class="sourceCode" id="cb167"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_title</span>
+<span class="co">#&gt; # A tibble: 210,914 × 2</span>
+<span class="co">#&gt;    id                       word  </span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt; </span>
+<span class="co">#&gt;  1 55942a57c63a7fe59b495a77 15    </span>
+<span class="co">#&gt;  2 55942a57c63a7fe59b495a77 minute</span>
+<span class="co">#&gt;  3 55942a57c63a7fe59b495a77 stream</span>
+<span class="co">#&gt;  4 55942a57c63a7fe59b495a77 flow  </span>
+<span class="co">#&gt;  5 55942a57c63a7fe59b495a77 data  </span>
+<span class="co">#&gt;  6 55942a57c63a7fe59b495a77 usgs  </span>
+<span class="co">#&gt;  7 55942a57c63a7fe59b495a77 fife  </span>
+<span class="co">#&gt;  8 55942a57c63a7fe59b495a78 15    </span>
+<span class="co">#&gt;  9 55942a57c63a7fe59b495a78 minute</span>
+<span class="co">#&gt; 10 55942a57c63a7fe59b495a78 stream</span>
+<span class="co">#&gt; # … with 210,904 more rows</span>
+<span class="va">nasa_desc</span>
+<span class="co">#&gt; # A tibble: 2,677,811 × 2</span>
+<span class="co">#&gt;    id                       word   </span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt;  </span>
+<span class="co">#&gt;  1 55942a57c63a7fe59b495a77 usgs   </span>
+<span class="co">#&gt;  2 55942a57c63a7fe59b495a77 15     </span>
+<span class="co">#&gt;  3 55942a57c63a7fe59b495a77 minute </span>
+<span class="co">#&gt;  4 55942a57c63a7fe59b495a77 stream </span>
+<span class="co">#&gt;  5 55942a57c63a7fe59b495a77 flow   </span>
+<span class="co">#&gt;  6 55942a57c63a7fe59b495a77 data   </span>
+<span class="co">#&gt;  7 55942a57c63a7fe59b495a77 kings  </span>
+<span class="co">#&gt;  8 55942a57c63a7fe59b495a77 creek  </span>
+<span class="co">#&gt;  9 55942a57c63a7fe59b495a77 konza  </span>
+<span class="co">#&gt; 10 55942a57c63a7fe59b495a77 prairie</span>
+<span class="co">#&gt; # … with 2,677,801 more rows</span></code></pre></div>
+</div>
+<div id="some-initial-simple-exploration" class="section level3">
+<h3>
+<span class="header-section-number">8.1.2</span> Some initial simple exploration<a class="anchor" aria-label="anchor" href="#some-initial-simple-exploration"><i class="fas fa-link"></i></a>
+</h3>
+<p>What are the most common words in the NASA dataset titles? We can use <code><a href="https://dplyr.tidyverse.org/reference/count.html">count()</a></code> from dplyr to check this out.</p>
+<div class="sourceCode" id="cb168"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_title</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 11,614 × 2</span>
+<span class="co">#&gt;    word        n</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;int&gt;</span>
+<span class="co">#&gt;  1 project  7735</span>
+<span class="co">#&gt;  2 data     3354</span>
+<span class="co">#&gt;  3 1        2841</span>
+<span class="co">#&gt;  4 level    2400</span>
+<span class="co">#&gt;  5 global   1809</span>
+<span class="co">#&gt;  6 v1       1478</span>
+<span class="co">#&gt;  7 daily    1397</span>
+<span class="co">#&gt;  8 3        1364</span>
+<span class="co">#&gt;  9 aura     1363</span>
+<span class="co">#&gt; 10 l2       1311</span>
+<span class="co">#&gt; # … with 11,604 more rows</span></code></pre></div>
+<p>What about the descriptions?</p>
+<div class="sourceCode" id="cb169"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_desc</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 35,940 × 2</span>
+<span class="co">#&gt;    word           n</span>
+<span class="co">#&gt;    &lt;chr&gt;      &lt;int&gt;</span>
+<span class="co">#&gt;  1 data       68871</span>
+<span class="co">#&gt;  2 modis      24420</span>
+<span class="co">#&gt;  3 global     23028</span>
+<span class="co">#&gt;  4 2          16599</span>
+<span class="co">#&gt;  5 1          15770</span>
+<span class="co">#&gt;  6 system     15480</span>
+<span class="co">#&gt;  7 product    14780</span>
+<span class="co">#&gt;  8 aqua       14738</span>
+<span class="co">#&gt;  9 earth      14373</span>
+<span class="co">#&gt; 10 resolution 13879</span>
+<span class="co">#&gt; # … with 35,930 more rows</span></code></pre></div>
+<p>Words like “data” and “global” are used very often in NASA titles and descriptions. We may want to remove digits and some “words” like “v1” from these data frames for many types of analyses; they are not too meaningful for most audiences.</p>
+<div class="rmdtip">
+<p>
+We can do this by making a list of custom stop words and using <code><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join()</a></code> to remove them from the data frame, just like we removed the default stop words that are in the tidytext package. This approach can be used in many instances and is a great tool to bear in mind.
+</p>
+</div>
+<div class="sourceCode" id="cb170"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">my_stopwords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, 
+                                <span class="st">"v1"</span>, <span class="st">"v03"</span>, <span class="st">"l2"</span>, <span class="st">"l3"</span>, <span class="st">"l4"</span>, <span class="st">"v5.2.0"</span>, 
+                                <span class="st">"v003"</span>, <span class="st">"v004"</span>, <span class="st">"v005"</span>, <span class="st">"v006"</span>, <span class="st">"v7"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">nasa_title</span> <span class="op">&lt;-</span> <span class="va">nasa_title</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">my_stopwords</span><span class="op">)</span>
+<span class="va">nasa_desc</span> <span class="op">&lt;-</span> <span class="va">nasa_desc</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">my_stopwords</span><span class="op">)</span></code></pre></div>
+<p>What are the most common keywords?</p>
+<div class="sourceCode" id="cb171"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_keyword</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">keyword</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span>sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 1,774 × 2</span>
+<span class="co">#&gt; # Groups:   keyword [1,774]</span>
+<span class="co">#&gt;    keyword                     n</span>
+<span class="co">#&gt;    &lt;chr&gt;                   &lt;int&gt;</span>
+<span class="co">#&gt;  1 EARTH SCIENCE           14362</span>
+<span class="co">#&gt;  2 Project                  7452</span>
+<span class="co">#&gt;  3 ATMOSPHERE               7321</span>
+<span class="co">#&gt;  4 Ocean Color              7268</span>
+<span class="co">#&gt;  5 Ocean Optics             7268</span>
+<span class="co">#&gt;  6 Oceans                   7268</span>
+<span class="co">#&gt;  7 completed                6452</span>
+<span class="co">#&gt;  8 ATMOSPHERIC WATER VAPOR  3142</span>
+<span class="co">#&gt;  9 OCEANS                   2765</span>
+<span class="co">#&gt; 10 LAND SURFACE             2720</span>
+<span class="co">#&gt; # … with 1,764 more rows</span></code></pre></div>
+<p>We likely want to change all of the keywords to either lower or upper case to get rid of duplicates like “OCEANS” and “Oceans”. Let’s do that here.</p>
+<div class="sourceCode" id="cb172"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">nasa_keyword</span> <span class="op">&lt;-</span> <span class="va">nasa_keyword</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>keyword <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">keyword</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="word-co-ocurrences-and-correlations" class="section level2">
+<h2>
+<span class="header-section-number">8.2</span> Word co-ocurrences and correlations<a class="anchor" aria-label="anchor" href="#word-co-ocurrences-and-correlations"><i class="fas fa-link"></i></a>
+</h2>
+<p>As a next step, let’s examine which words commonly occur together in the titles, descriptions, and keywords of NASA datasets, as described in Chapter <a href="ngrams.html#ngrams">4</a>. We can then examine word networks for these fields; this may help us see, for example, which datasets are related to each other.</p>
+<div id="networks-of-description-and-title-words" class="section level3">
+<h3>
+<span class="header-section-number">8.2.1</span> Networks of Description and Title Words<a class="anchor" aria-label="anchor" href="#networks-of-description-and-title-words"><i class="fas fa-link"></i></a>
+</h3>
+<p>We can use <code><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count()</a></code> from the widyr package to count how many times each pair of words occurs together in a title or description field.</p>
+<div class="sourceCode" id="cb173"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dgrtwo/widyr">widyr</a></span><span class="op">)</span>
+
+<span class="va">title_word_pairs</span> <span class="op">&lt;-</span> <span class="va">nasa_title</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">id</span>, sort <span class="op">=</span> <span class="cn">TRUE</span>, upper <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">title_word_pairs</span>
+<span class="co">#&gt; # A tibble: 156,689 × 3</span>
+<span class="co">#&gt;    item1  item2       n</span>
+<span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;   &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 system project   796</span>
+<span class="co">#&gt;  2 lba    eco       683</span>
+<span class="co">#&gt;  3 airs   aqua      641</span>
+<span class="co">#&gt;  4 level  aqua      623</span>
+<span class="co">#&gt;  5 level  airs      612</span>
+<span class="co">#&gt;  6 aura   omi       607</span>
+<span class="co">#&gt;  7 global grid      597</span>
+<span class="co">#&gt;  8 global daily     574</span>
+<span class="co">#&gt;  9 data   boreas    551</span>
+<span class="co">#&gt; 10 ground gpm       550</span>
+<span class="co">#&gt; # … with 156,679 more rows</span></code></pre></div>
+<p>These are the pairs of words that occur together most often in title fields. Some of these words are obviously acronyms used within NASA, and we see how often words like “project” and “system” are used.</p>
+<div class="sourceCode" id="cb174"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_word_pairs</span> <span class="op">&lt;-</span> <span class="va">nasa_desc</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">id</span>, sort <span class="op">=</span> <span class="cn">TRUE</span>, upper <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">desc_word_pairs</span>
+<span class="co">#&gt; # A tibble: 10,889,084 × 3</span>
+<span class="co">#&gt;    item1      item2          n</span>
+<span class="co">#&gt;    &lt;chr&gt;      &lt;chr&gt;      &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 data       global      9864</span>
+<span class="co">#&gt;  2 data       resolution  9302</span>
+<span class="co">#&gt;  3 instrument resolution  8189</span>
+<span class="co">#&gt;  4 data       surface     8180</span>
+<span class="co">#&gt;  5 global     resolution  8139</span>
+<span class="co">#&gt;  6 data       instrument  7994</span>
+<span class="co">#&gt;  7 data       system      7870</span>
+<span class="co">#&gt;  8 resolution bands       7584</span>
+<span class="co">#&gt;  9 data       earth       7576</span>
+<span class="co">#&gt; 10 orbit      resolution  7462</span>
+<span class="co">#&gt; # … with 10,889,074 more rows</span></code></pre></div>
+<p>These are the pairs of words that occur together most often in description fields. “Data” is a very common word in description fields; there is no shortage of data in the datasets at NASA!</p>
+<p>Let’s plot networks of these co-occurring words so we can see these relationships better in Figure <a href="nasa.html#fig:plottitle">8.1</a>. We will again use the ggraph package for visualizing our networks.</p>
+<div class="sourceCode" id="cb175"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igraph.org">igraph</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggraph.data-imaginist.com">ggraph</a></span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span>
+<span class="va">title_word_pairs</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;=</span> <span class="fl">250</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">n</span>, edge_width <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, edge_colour <span class="op">=</span> <span class="st">"cyan4"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, repel <span class="op">=</span> <span class="cn">TRUE</span>, 
+                 point.padding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plottitle"></span>
+<img src="08-nasa-metadata_files/figure-html/plottitle-1.png" alt="Word network in NASA dataset titles" width="90%"><p class="caption">
+Figure 8.1: Word network in NASA dataset titles
+</p>
+</div>
+<p>We see some clear clustering in this network of title words; words in NASA dataset titles are largely organized into several families of words that tend to go together.</p>
+<p>What about the words from the description fields?</p>
+<div class="sourceCode" id="cb176"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span>
+<span class="va">desc_word_pairs</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;=</span> <span class="fl">5000</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">n</span>, edge_width <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, edge_colour <span class="op">=</span> <span class="st">"darkred"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, repel <span class="op">=</span> <span class="cn">TRUE</span>,
+                 point.padding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotdesc"></span>
+<img src="08-nasa-metadata_files/figure-html/plotdesc-1.png" alt="Word network in NASA dataset descriptions" width="90%"><p class="caption">
+Figure 8.2: Word network in NASA dataset descriptions
+</p>
+</div>
+<p>Figure <a href="nasa.html#fig:plotdesc">8.2</a> shows such <em>strong</em> connections between the top dozen or so words (words like “data”, “global”, “resolution”, and “instrument”) that we do not see clear clustering structure in the network. We may want to use tf-idf (as described in detail in Chapter <a href="tfidf.html#tfidf">3</a>) as a metric to find characteristic words for each description field, instead of looking at counts of words.</p>
+</div>
+<div id="networks-of-keywords" class="section level3">
+<h3>
+<span class="header-section-number">8.2.2</span> Networks of Keywords<a class="anchor" aria-label="anchor" href="#networks-of-keywords"><i class="fas fa-link"></i></a>
+</h3>
+<p>Next, let’s make a network of the keywords in Figure <a href="nasa.html#fig:plotcounts">8.3</a> to see which keywords commonly occur together in the same datasets.</p>
+<div class="sourceCode" id="cb177"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">keyword_pairs</span> <span class="op">&lt;-</span> <span class="va">nasa_keyword</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count</a></span><span class="op">(</span><span class="va">keyword</span>, <span class="va">id</span>, sort <span class="op">=</span> <span class="cn">TRUE</span>, upper <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">keyword_pairs</span>
+<span class="co">#&gt; # A tibble: 13,390 × 3</span>
+<span class="co">#&gt;    item1         item2                       n</span>
+<span class="co">#&gt;    &lt;chr&gt;         &lt;chr&gt;                   &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 OCEANS        OCEAN OPTICS             7324</span>
+<span class="co">#&gt;  2 EARTH SCIENCE ATMOSPHERE               7318</span>
+<span class="co">#&gt;  3 OCEANS        OCEAN COLOR              7270</span>
+<span class="co">#&gt;  4 OCEAN OPTICS  OCEAN COLOR              7270</span>
+<span class="co">#&gt;  5 PROJECT       COMPLETED                6450</span>
+<span class="co">#&gt;  6 EARTH SCIENCE ATMOSPHERIC WATER VAPOR  3142</span>
+<span class="co">#&gt;  7 ATMOSPHERE    ATMOSPHERIC WATER VAPOR  3142</span>
+<span class="co">#&gt;  8 EARTH SCIENCE OCEANS                   2762</span>
+<span class="co">#&gt;  9 EARTH SCIENCE LAND SURFACE             2718</span>
+<span class="co">#&gt; 10 EARTH SCIENCE BIOSPHERE                2448</span>
+<span class="co">#&gt; # … with 13,380 more rows</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span>
+<span class="va">keyword_pairs</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;=</span> <span class="fl">700</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">n</span>, edge_width <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, edge_colour <span class="op">=</span> <span class="st">"royalblue"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, repel <span class="op">=</span> <span class="cn">TRUE</span>,
+                 point.padding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotcounts"></span>
+<img src="08-nasa-metadata_files/figure-html/plotcounts-1.png" alt="Co-occurrence network in NASA dataset keywords" width="90%"><p class="caption">
+Figure 8.3: Co-occurrence network in NASA dataset keywords
+</p>
+</div>
+<p>We definitely see clustering here, and strong connections between keywords like “OCEANS”, “OCEAN OPTICS”, and “OCEAN COLOR”, or “PROJECT” and “COMPLETED”.</p>
+<div class="rmdwarning">
+<p>
+These are the most commonly co-occurring words, but also just the most common keywords in general.
+</p>
+</div>
+<p>To examine the relationships among keywords in a different way, we can find the correlation among the keywords as described in Chapter <a href="ngrams.html#ngrams">4</a>. This looks for those keywords that are more likely to occur together than with other keywords for a dataset.</p>
+<div class="sourceCode" id="cb178"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">keyword_cors</span> <span class="op">&lt;-</span> <span class="va">nasa_keyword</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">keyword</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">50</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_cor.html">pairwise_cor</a></span><span class="op">(</span><span class="va">keyword</span>, <span class="va">id</span>, sort <span class="op">=</span> <span class="cn">TRUE</span>, upper <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+
+<span class="va">keyword_cors</span>
+<span class="co">#&gt; # A tibble: 7,875 × 3</span>
+<span class="co">#&gt;    item1               item2       correlation</span>
+<span class="co">#&gt;    &lt;chr&gt;               &lt;chr&gt;             &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 KNOWLEDGE           SHARING           1    </span>
+<span class="co">#&gt;  2 DASHLINK            AMES              1    </span>
+<span class="co">#&gt;  3 SCHEDULE            EXPEDITION        1    </span>
+<span class="co">#&gt;  4 TURBULENCE          MODELS            0.997</span>
+<span class="co">#&gt;  5 APPEL               KNOWLEDGE         0.997</span>
+<span class="co">#&gt;  6 APPEL               SHARING           0.997</span>
+<span class="co">#&gt;  7 OCEAN OPTICS        OCEAN COLOR       0.995</span>
+<span class="co">#&gt;  8 ATMOSPHERIC SCIENCE CLOUD             0.994</span>
+<span class="co">#&gt;  9 LAUNCH              SCHEDULE          0.984</span>
+<span class="co">#&gt; 10 LAUNCH              EXPEDITION        0.984</span>
+<span class="co">#&gt; # … with 7,865 more rows</span></code></pre></div>
+<p>Notice that these keywords at the top of this sorted data frame have correlation coefficients equal to 1; they always occur together. This means these are redundant keywords. It may not make sense to continue to use both of the keywords in these sets of pairs; instead, just one keyword could be used.</p>
+<p>Let’s visualize the network of keyword correlations, just as we did for keyword co-occurences.</p>
+<div class="sourceCode" id="cb179"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1234</span><span class="op">)</span>
+<span class="va">keyword_cors</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">correlation</span> <span class="op">&gt;</span> <span class="fl">.6</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">correlation</span>, edge_width <span class="op">=</span> <span class="va">correlation</span><span class="op">)</span>, edge_colour <span class="op">=</span> <span class="st">"royalblue"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, repel <span class="op">=</span> <span class="cn">TRUE</span>,
+                 point.padding <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotcors"></span>
+<img src="08-nasa-metadata_files/figure-html/plotcors-1.png" alt="Correlation network in NASA dataset keywords" width="90%"><p class="caption">
+Figure 8.4: Correlation network in NASA dataset keywords
+</p>
+</div>
+<p>This network in Figure <a href="nasa.html#fig:plotcors">8.4</a> appears much different than the co-occurence network. The difference is that the co-occurrence network asks a question about which keyword pairs occur most often, and the correlation network asks a question about which keywords occur more often together than with other keywords. Notice here the high number of small clusters of keywords; the network structure can be extracted (for further analysis) from the <code><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame()</a></code> function above.</p>
+</div>
+</div>
+<div id="calculating-tf-idf-for-the-description-fields" class="section level2">
+<h2>
+<span class="header-section-number">8.3</span> Calculating tf-idf for the description fields<a class="anchor" aria-label="anchor" href="#calculating-tf-idf-for-the-description-fields"><i class="fas fa-link"></i></a>
+</h2>
+<p>The network graph in Figure <a href="nasa.html#fig:plotdesc">8.2</a> showed us that the description fields are dominated by a few common words like “data”, “global”, and “resolution”; this would be an excellent opportunity to use tf-idf as a statistic to find characteristic words for individual description fields. As discussed in Chapter <a href="tfidf.html#tfidf">3</a>, we can use tf-idf, the term frequency times inverse document frequency, to identify words that are especially important to a document within a collection of documents. Let’s apply that approach to the description fields of these NASA datasets.</p>
+<div id="what-is-tf-idf-for-the-description-field-words" class="section level3">
+<h3>
+<span class="header-section-number">8.3.1</span> What is tf-idf for the description field words?<a class="anchor" aria-label="anchor" href="#what-is-tf-idf-for-the-description-field-words"><i class="fas fa-link"></i></a>
+</h3>
+<p>We will consider each description field a document, and the whole set of description fields the collection or corpus of documents. We have already used <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> earlier in this chapter to make a tidy data frame of the words in the description fields, so now we can use <code><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf()</a></code> to calculate tf-idf for each word.</p>
+<div class="sourceCode" id="cb180"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_tf_idf</span> <span class="op">&lt;-</span> <span class="va">nasa_desc</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">id</span>, <span class="va">n</span><span class="op">)</span></code></pre></div>
+<p>What are the highest tf-idf words in the NASA description fields?</p>
+<div class="sourceCode" id="cb181"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_tf_idf</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="op">-</span><span class="va">tf_idf</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 1,913,224 × 6</span>
+<span class="co">#&gt;    id                       word                            n    tf   idf tf_idf</span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt;                       &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 55942a7cc63a7fe59b49774a rdr                             1     1 10.4   10.4 </span>
+<span class="co">#&gt;  2 55942ac9c63a7fe59b49b688 palsar_radiometric_terrain…     1     1 10.4   10.4 </span>
+<span class="co">#&gt;  3 55942ac9c63a7fe59b49b689 palsar_radiometric_terrain…     1     1 10.4   10.4 </span>
+<span class="co">#&gt;  4 55942a7bc63a7fe59b4976ca lgrs                            1     1  8.77   8.77</span>
+<span class="co">#&gt;  5 55942a7bc63a7fe59b4976d2 lgrs                            1     1  8.77   8.77</span>
+<span class="co">#&gt;  6 55942a7bc63a7fe59b4976e3 lgrs                            1     1  8.77   8.77</span>
+<span class="co">#&gt;  7 55942a7dc63a7fe59b497820 mri                             1     1  8.58   8.58</span>
+<span class="co">#&gt;  8 55942ad8c63a7fe59b49cf6c template_proddescription        1     1  8.30   8.30</span>
+<span class="co">#&gt;  9 55942ad8c63a7fe59b49cf6d template_proddescription        1     1  8.30   8.30</span>
+<span class="co">#&gt; 10 55942ad8c63a7fe59b49cf6e template_proddescription        1     1  8.30   8.30</span>
+<span class="co">#&gt; # … with 1,913,214 more rows</span></code></pre></div>
+<p>These are the most important words in the description fields as measured by tf-idf, meaning they are common but not too common.</p>
+<div class="rmdwarning">
+<p>
+Notice we have run into an issue here; both <span class="math inline"><span class="math inline">\(n\)</span></span> and term frequency are equal to 1 for these terms, meaning that these were description fields that only had a single word in them. If a description field only contains one word, the tf-idf algorithm will think that is a very important word.
+</p>
+</div>
+<p>Depending on our analytic goals, it might be a good idea to throw out all description fields that have very few words.</p>
+</div>
+<div id="connecting-description-fields-to-keywords" class="section level3">
+<h3>
+<span class="header-section-number">8.3.2</span> Connecting description fields to keywords<a class="anchor" aria-label="anchor" href="#connecting-description-fields-to-keywords"><i class="fas fa-link"></i></a>
+</h3>
+<p>We now know which words in the descriptions have high tf-idf, and we also have labels for these descriptions in the keywords. Let’s do a full join of the keyword data frame and the data frame of description words with tf-idf, and then find the highest tf-idf words for a given keyword.</p>
+<div class="sourceCode" id="cb182"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_tf_idf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">full_join</a></span><span class="op">(</span><span class="va">desc_tf_idf</span>, <span class="va">nasa_keyword</span>, by <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></code></pre></div>
+<p>Let’s plot some of the most important words, as measured by tf-idf, for a few example keywords used on NASA datasets. First, let’s use dplyr operations to filter for the keywords we want to examine and take just the top 15 words for each keyword. Then, let’s plot those words in Figure <a href="nasa.html#fig:plottfidf">8.5</a>.</p>
+<div class="sourceCode" id="cb183"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_tf_idf</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/near.html">near</a></span><span class="op">(</span><span class="va">tf</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">keyword</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"SOLAR ACTIVITY"</span>, <span class="st">"CLOUDS"</span>, 
+                        <span class="st">"SEISMOLOGY"</span>, <span class="st">"ASTROPHYSICS"</span>,
+                        <span class="st">"HUMAN HEALTH"</span>, <span class="st">"BUDGET"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">keyword</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html">distinct</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">keyword</span>, .keep_all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">tf_idf</span>, n <span class="op">=</span> <span class="fl">15</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">word</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">tf_idf</span>, <span class="va">word</span>, fill <span class="op">=</span> <span class="va">keyword</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">keyword</span>, ncol <span class="op">=</span> <span class="fl">3</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Highest tf-idf words in NASA metadata description fields"</span>,
+       caption <span class="op">=</span> <span class="st">"NASA metadata from https://data.nasa.gov/data.json"</span>,
+       x <span class="op">=</span> <span class="st">"tf-idf"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plottfidf"></span>
+<img src="08-nasa-metadata_files/figure-html/plottfidf-1.png" alt="Distribution of tf-idf for words from datasets labeled with selected keywords" width="90%"><p class="caption">
+Figure 8.5: Distribution of tf-idf for words from datasets labeled with selected keywords
+</p>
+</div>
+<p>Using tf-idf has allowed us to identify important description words for each of these keywords. Datasets labeled with the keyword “SEISMOLOGY” have words like “earthquake”, “risk”, and “hazard” in their description, while those labeled with “HUMAN HEALTH” have descriptions characterized by words like “wellbeing”, “vulnerability”, and “children.” Most of the combinations of letters that are not English words are certainly acronyms (like OMB for the Office of Management and Budget), and the examples of years and numbers are important for these topics. The tf-idf statistic has identified the kinds of words it is intended to, important words for individual documents within a collection of documents.</p>
+</div>
+</div>
+<div id="topic-modeling" class="section level2">
+<h2>
+<span class="header-section-number">8.4</span> Topic modeling<a class="anchor" aria-label="anchor" href="#topic-modeling"><i class="fas fa-link"></i></a>
+</h2>
+<p>Using tf-idf as a statistic has already given us insight into the content of NASA description fields, but let’s try an additional approach to the question of what the NASA descriptions fields are about. We can use topic modeling as described in Chapter <a href="topicmodeling.html#topicmodeling">6</a> to model each document (description field) as a mixture of topics and each topic as a mixture of words. As in earlier chapters, we will use <a href="https://en.wikipedia.org/wiki/Latent_Dirichlet_allocation">latent Dirichlet allocation (LDA)</a> for our topic modeling; there are other possible approaches for topic modeling.</p>
+<div id="casting-to-a-document-term-matrix" class="section level3">
+<h3>
+<span class="header-section-number">8.4.1</span> Casting to a document-term matrix<a class="anchor" aria-label="anchor" href="#casting-to-a-document-term-matrix"><i class="fas fa-link"></i></a>
+</h3>
+<p>To do the topic modeling as implemented here, we need to make a <code>DocumentTermMatrix</code>, a special kind of matrix from the tm package (of course, this is just a specific implementation of the general concept of a “document-term matrix”). Rows correspond to documents (description texts in our case) and columns correspond to terms (i.e., words); it is a sparse matrix and the values are word counts.</p>
+<p>Let’s clean up the text a bit using stop words to remove some of the nonsense “words” leftover from HTML or other character encoding. We can use <code><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows()</a></code> to add our custom stop words to the list of default stop words from the tidytext package, and then all at once use <code><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join()</a></code> to remove them all from our data frame.</p>
+<div class="sourceCode" id="cb184"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">my_stop_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="va">stop_words</span>, 
+                           <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"nbsp"</span>, <span class="st">"amp"</span>, <span class="st">"gt"</span>, <span class="st">"lt"</span>,
+                                           <span class="st">"timesnewromanpsmt"</span>, <span class="st">"font"</span>,
+                                           <span class="st">"td"</span>, <span class="st">"li"</span>, <span class="st">"br"</span>, <span class="st">"tr"</span>, <span class="st">"quot"</span>,
+                                           <span class="st">"st"</span>, <span class="st">"img"</span>, <span class="st">"src"</span>, <span class="st">"strong"</span>,
+                                           <span class="st">"http"</span>, <span class="st">"file"</span>, <span class="st">"files"</span>,
+                                           <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span>, 
+                                  lexicon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"custom"</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">word_counts</span> <span class="op">&lt;-</span> <span class="va">nasa_desc</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">my_stop_words</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="va">word_counts</span>
+<span class="co">#&gt; # A tibble: 1,895,310 × 3</span>
+<span class="co">#&gt;    id                       word         n</span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;chr&gt;    &lt;int&gt;</span>
+<span class="co">#&gt;  1 55942a8ec63a7fe59b4986ef suit        82</span>
+<span class="co">#&gt;  2 55942a8ec63a7fe59b4986ef space       69</span>
+<span class="co">#&gt;  3 56cf5b00a759fdadc44e564a data        41</span>
+<span class="co">#&gt;  4 56cf5b00a759fdadc44e564a leak        40</span>
+<span class="co">#&gt;  5 56cf5b00a759fdadc44e564a tree        39</span>
+<span class="co">#&gt;  6 55942a8ec63a7fe59b4986ef pressure    34</span>
+<span class="co">#&gt;  7 55942a8ec63a7fe59b4986ef system      34</span>
+<span class="co">#&gt;  8 55942a89c63a7fe59b4982d9 em          32</span>
+<span class="co">#&gt;  9 55942a8ec63a7fe59b4986ef al          32</span>
+<span class="co">#&gt; 10 55942a8ec63a7fe59b4986ef human       31</span>
+<span class="co">#&gt; # … with 1,895,300 more rows</span></code></pre></div>
+<p>This is the information we need, the number of times each word is used in each document, to make a <code>DocumentTermMatrix</code>. We can <code><a href="https://rdrr.io/pkg/reshape2/man/cast.html">cast()</a></code> from our tidy text format to this non-tidy format as described in detail in Chapter <a href="dtm.html#dtm">5</a>.</p>
+<div class="sourceCode" id="cb185"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">desc_dtm</span> <span class="op">&lt;-</span> <span class="va">word_counts</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dtm</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">word</span>, <span class="va">n</span><span class="op">)</span>
+
+<span class="va">desc_dtm</span>
+<span class="co">#&gt; &lt;&lt;DocumentTermMatrix (documents: 32003, terms: 35901)&gt;&gt;</span>
+<span class="co">#&gt; Non-/sparse entries: 1895310/1147044393</span>
+<span class="co">#&gt; Sparsity           : 100%</span>
+<span class="co">#&gt; Maximal term length: 166</span>
+<span class="co">#&gt; Weighting          : term frequency (tf)</span></code></pre></div>
+<p>We see that this dataset contains documents (each of them a NASA description field) and terms (words). Notice that this example document-term matrix is (very close to) 100% sparse, meaning that almost all of the entries in this matrix are zero. Each non-zero entry corresponds to a certain word appearing in a certain document.</p>
+</div>
+<div id="ready-for-topic-modeling" class="section level3">
+<h3>
+<span class="header-section-number">8.4.2</span> Ready for topic modeling<a class="anchor" aria-label="anchor" href="#ready-for-topic-modeling"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now let’s use the <a href="https://cran.r-project.org/package=topicmodels">topicmodels</a> package to create an LDA model. How many topics will we tell the algorithm to make? This is a question much like in <span class="math inline">\(k\)</span>-means clustering; we don’t really know ahead of time. We tried the following modeling procedure using 8, 16, 24, 32, and 64 topics; we found that at 24 topics, documents are still getting sorted into topics cleanly but going much beyond that caused the distributions of <span class="math inline">\(\gamma\)</span>, the probability that each document belongs in each topic, to look worrisome. We will show more details on this later.</p>
+<div class="sourceCode" id="cb186"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">topicmodels</span><span class="op">)</span>
+
+<span class="co"># be aware that running this model is time intensive</span>
+<span class="va">desc_lda</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/topicmodels/man/lda.html">LDA</a></span><span class="op">(</span><span class="va">desc_dtm</span>, k <span class="op">=</span> <span class="fl">24</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>seed <span class="op">=</span> <span class="fl">1234</span><span class="op">)</span><span class="op">)</span>
+<span class="va">desc_lda</span></code></pre></div>
+<pre><code>#&gt; A LDA_VEM topic model with 24 topics.</code></pre>
+<p>This is a stochastic algorithm that could have different results depending on where the algorithm starts, so we need to specify a <code>seed</code> for reproducibility as shown here.</p>
+</div>
+<div id="interpreting-the-topic-model" class="section level3">
+<h3>
+<span class="header-section-number">8.4.3</span> Interpreting the topic model<a class="anchor" aria-label="anchor" href="#interpreting-the-topic-model"><i class="fas fa-link"></i></a>
+</h3>
+<p>Now that we have built the model, let’s <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> the results of the model, i.e., construct a tidy data frame that summarizes the results of the model. The tidytext package includes a tidying method for LDA models from the topicmodels package.</p>
+<div class="sourceCode" id="cb188"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_lda</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html">tidy</a></span><span class="op">(</span><span class="va">desc_lda</span><span class="op">)</span>
+
+<span class="va">tidy_lda</span>
+<span class="co">#&gt; # A tibble: 861,624 × 3</span>
+<span class="co">#&gt;    topic term       beta</span>
+<span class="co">#&gt;    &lt;int&gt; &lt;chr&gt;     &lt;dbl&gt;</span>
+<span class="co">#&gt;  1     1 suit  1.00e-121</span>
+<span class="co">#&gt;  2     2 suit  2.63e-145</span>
+<span class="co">#&gt;  3     3 suit  1.92e- 79</span>
+<span class="co">#&gt;  4     4 suit  6.72e- 45</span>
+<span class="co">#&gt;  5     5 suit  1.74e- 85</span>
+<span class="co">#&gt;  6     6 suit  7.69e- 84</span>
+<span class="co">#&gt;  7     7 suit  3.28e-  4</span>
+<span class="co">#&gt;  8     8 suit  3.74e- 20</span>
+<span class="co">#&gt;  9     9 suit  4.85e- 15</span>
+<span class="co">#&gt; 10    10 suit  4.77e- 10</span>
+<span class="co">#&gt; # … with 861,614 more rows</span></code></pre></div>
+<p>The column <span class="math inline">\(\beta\)</span> tells us the probability of that term being generated from that topic for that document. It is the probability of that term (word) belonging to that topic. Notice that some of the values for <span class="math inline">\(\beta\)</span> are very, very low, and some are not so low.</p>
+<p>What is each topic about? Let’s examine the top 10 terms for each topic.</p>
+<div class="sourceCode" id="cb189"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">top_terms</span> <span class="op">&lt;-</span> <span class="va">tidy_lda</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">beta</span>, n <span class="op">=</span> <span class="fl">10</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">topic</span>, <span class="op">-</span><span class="va">beta</span><span class="op">)</span>
+
+<span class="va">top_terms</span>
+<span class="co">#&gt; # A tibble: 240 × 3</span>
+<span class="co">#&gt;    topic term          beta</span>
+<span class="co">#&gt;    &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;</span>
+<span class="co">#&gt;  1     1 data        0.0449</span>
+<span class="co">#&gt;  2     1 soil        0.0368</span>
+<span class="co">#&gt;  3     1 moisture    0.0295</span>
+<span class="co">#&gt;  4     1 amsr        0.0244</span>
+<span class="co">#&gt;  5     1 sst         0.0168</span>
+<span class="co">#&gt;  6     1 validation  0.0132</span>
+<span class="co">#&gt;  7     1 temperature 0.0132</span>
+<span class="co">#&gt;  8     1 surface     0.0129</span>
+<span class="co">#&gt;  9     1 accuracy    0.0123</span>
+<span class="co">#&gt; 10     1 set         0.0116</span>
+<span class="co">#&gt; # … with 230 more rows</span></code></pre></div>
+<p>It is not very easy to interpret what the topics are about from a data frame like this so let’s look at this information visually in Figure <a href="nasa.html#fig:plotbeta">8.6</a>.</p>
+<div class="sourceCode" id="cb190"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">top_terms</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>term <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/reorder_within.html">reorder_within</a></span><span class="op">(</span><span class="va">term</span>, <span class="va">beta</span>, <span class="va">topic</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">topic</span>, <span class="va">term</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>    
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>  
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">term</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/reorder_within.html">scale_y_reordered</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Top 10 terms in each LDA topic"</span>,
+       x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">topic</span>, ncol <span class="op">=</span> <span class="fl">4</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotbeta"></span>
+<img src="08-nasa-metadata_files/figure-html/plotbeta-1.png" alt="Top terms in topic modeling of NASA metadata description field texts" width="90%"><p class="caption">
+Figure 8.6: Top terms in topic modeling of NASA metadata description field texts
+</p>
+</div>
+<p>We can see what a dominant word “data” is in these description texts. In addition, there are meaningful differences between these collections of terms, from terms about soil, forests, and biomass in topic 12 to terms about design, systems, and technology in topic 21. The topic modeling process has identified groupings of terms that we can understand as human readers of these description fields.</p>
+<p>We just explored which words are associated with which topics. Next, let’s examine which topics are associated with which description fields (i.e., documents). We will look at a different probability for this, <span class="math inline">\(\gamma\)</span>, the probability that each document belongs in each topic, again using the <code>tidy</code> verb.</p>
+<div class="sourceCode" id="cb191"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">lda_gamma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html">tidy</a></span><span class="op">(</span><span class="va">desc_lda</span>, matrix <span class="op">=</span> <span class="st">"gamma"</span><span class="op">)</span>
+
+<span class="va">lda_gamma</span>
+<span class="co">#&gt; # A tibble: 768,072 × 3</span>
+<span class="co">#&gt;    document                 topic      gamma</span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;int&gt;      &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 55942a8ec63a7fe59b4986ef     1 0.00000645</span>
+<span class="co">#&gt;  2 56cf5b00a759fdadc44e564a     1 0.0000116 </span>
+<span class="co">#&gt;  3 55942a89c63a7fe59b4982d9     1 0.0492    </span>
+<span class="co">#&gt;  4 56cf5b00a759fdadc44e55cd     1 0.0000225 </span>
+<span class="co">#&gt;  5 55942a89c63a7fe59b4982c6     1 0.0000661 </span>
+<span class="co">#&gt;  6 55942a86c63a7fe59b498077     1 0.0000567 </span>
+<span class="co">#&gt;  7 56cf5b00a759fdadc44e56f8     1 0.0000475 </span>
+<span class="co">#&gt;  8 55942a8bc63a7fe59b4984b5     1 0.0000431 </span>
+<span class="co">#&gt;  9 55942a6ec63a7fe59b496bf7     1 0.0000441 </span>
+<span class="co">#&gt; 10 55942a8ec63a7fe59b4986f6     1 0.0000288 </span>
+<span class="co">#&gt; # … with 768,062 more rows</span></code></pre></div>
+<p>Notice that some of the probabilities visible at the top of the data frame are low and some are higher. Our model has assigned a probability to each description belonging to each of the topics we constructed from the sets of words. How are the probabilities distributed? Let’s visualize them (Figure <a href="nasa.html#fig:plotgammaall">8.7</a>).</p>
+<div class="sourceCode" id="cb192"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">lda_gamma</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Distribution of probabilities for all topics"</span>,
+       y <span class="op">=</span> <span class="st">"Number of documents"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotgammaall"></span>
+<img src="08-nasa-metadata_files/figure-html/plotgammaall-1.png" alt="Probability distribution in topic modeling of NASA metadata description field texts" width="90%"><p class="caption">
+Figure 8.7: Probability distribution in topic modeling of NASA metadata description field texts
+</p>
+</div>
+<p>First notice that the y-axis is plotted on a log scale; otherwise it is difficult to make out any detail in the plot. Next, notice that <span class="math inline">\(\gamma\)</span> runs from 0 to 1; remember that this is the probability that a given document belongs in a given topic. There are many values near zero, which means there are many documents that do not belong in each topic. Also, there are many values near <span class="math inline">\(\gamma = 1\)</span>; these are the documents that <em>do</em> belong in those topics. This distribution shows that documents are being well discriminated as belonging to a topic or not. We can also look at how the probabilities are distributed within each topic, as shown in Figure <a href="nasa.html#fig:plotgamma">8.8</a>.</p>
+<div class="sourceCode" id="cb193"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">lda_gamma</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">gamma</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.8</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">topic</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Distribution of probability for each topic"</span>,
+       y <span class="op">=</span> <span class="st">"Number of documents"</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotgamma"></span>
+<img src="08-nasa-metadata_files/figure-html/plotgamma-1.png" alt="Probability distribution for each topic in topic modeling of NASA metadata description field texts" width="90%"><p class="caption">
+Figure 8.8: Probability distribution for each topic in topic modeling of NASA metadata description field texts
+</p>
+</div>
+<p>Let’s look specifically at topic 18 in Figure <a href="nasa.html#fig:plotgamma">8.8</a>, a topic that had documents cleanly sorted in and out of it. There are many documents with <span class="math inline">\(\gamma\)</span> close to 1; these are the documents that <em>do</em> belong to topic 18 according to the model. There are also many documents with <span class="math inline">\(\gamma\)</span> close to 0; these are the documents that do <em>not</em> belong to topic 18. Each document appears in each panel in this plot, and its <span class="math inline">\(\gamma\)</span> for that topic tells us that document’s probability of belonging in that topic.</p>
+<p>This plot displays the type of information we used to choose how many topics for our topic modeling procedure. When we tried options higher than 24 (such as 32 or 64), the distributions for <span class="math inline">\(\gamma\)</span> started to look very flat toward <span class="math inline">\(\gamma = 1\)</span>; documents were not getting sorted into topics very well.</p>
+</div>
+<div id="connecting-topic-modeling-with-keywords" class="section level3">
+<h3>
+<span class="header-section-number">8.4.4</span> Connecting topic modeling with keywords<a class="anchor" aria-label="anchor" href="#connecting-topic-modeling-with-keywords"><i class="fas fa-link"></i></a>
+</h3>
+<p>Let’s connect these topic models with the keywords and see what relationships we can find. We can <code><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">full_join()</a></code> this to the human-tagged keywords and discover which keywords are associated with which topic.</p>
+<div class="sourceCode" id="cb194"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">lda_gamma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">full_join</a></span><span class="op">(</span><span class="va">lda_gamma</span>, <span class="va">nasa_keyword</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"document"</span> <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">lda_gamma</span>
+<span class="co">#&gt; # A tibble: 3,037,671 × 4</span>
+<span class="co">#&gt;    document                 topic      gamma keyword                    </span>
+<span class="co">#&gt;    &lt;chr&gt;                    &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt;                      </span>
+<span class="co">#&gt;  1 55942a8ec63a7fe59b4986ef     1 0.00000645 JOHNSON SPACE CENTER       </span>
+<span class="co">#&gt;  2 55942a8ec63a7fe59b4986ef     1 0.00000645 PROJECT                    </span>
+<span class="co">#&gt;  3 55942a8ec63a7fe59b4986ef     1 0.00000645 COMPLETED                  </span>
+<span class="co">#&gt;  4 56cf5b00a759fdadc44e564a     1 0.0000116  DASHLINK                   </span>
+<span class="co">#&gt;  5 56cf5b00a759fdadc44e564a     1 0.0000116  AMES                       </span>
+<span class="co">#&gt;  6 56cf5b00a759fdadc44e564a     1 0.0000116  NASA                       </span>
+<span class="co">#&gt;  7 55942a89c63a7fe59b4982d9     1 0.0492     GODDARD SPACE FLIGHT CENTER</span>
+<span class="co">#&gt;  8 55942a89c63a7fe59b4982d9     1 0.0492     PROJECT                    </span>
+<span class="co">#&gt;  9 55942a89c63a7fe59b4982d9     1 0.0492     COMPLETED                  </span>
+<span class="co">#&gt; 10 56cf5b00a759fdadc44e55cd     1 0.0000225  DASHLINK                   </span>
+<span class="co">#&gt; # … with 3,037,661 more rows</span></code></pre></div>
+<p>Now we can use <code><a href="https://dplyr.tidyverse.org/reference/filter.html">filter()</a></code> to keep only the document-topic entries that have probabilities (<span class="math inline">\(\gamma\)</span>) greater than some cut-off value; let’s use 0.9.</p>
+<div class="sourceCode" id="cb195"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">top_keywords</span> <span class="op">&lt;-</span> <span class="va">lda_gamma</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">gamma</span> <span class="op">&gt;</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">topic</span>, <span class="va">keyword</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">top_keywords</span>
+<span class="co">#&gt; # A tibble: 1,022 × 3</span>
+<span class="co">#&gt;    topic keyword           n</span>
+<span class="co">#&gt;    &lt;int&gt; &lt;chr&gt;         &lt;int&gt;</span>
+<span class="co">#&gt;  1    13 OCEAN COLOR    4480</span>
+<span class="co">#&gt;  2    13 OCEAN OPTICS   4480</span>
+<span class="co">#&gt;  3    13 OCEANS         4480</span>
+<span class="co">#&gt;  4    11 OCEAN COLOR    1216</span>
+<span class="co">#&gt;  5    11 OCEAN OPTICS   1216</span>
+<span class="co">#&gt;  6    11 OCEANS         1216</span>
+<span class="co">#&gt;  7     9 PROJECT         926</span>
+<span class="co">#&gt;  8    12 EARTH SCIENCE   909</span>
+<span class="co">#&gt;  9     9 COMPLETED       834</span>
+<span class="co">#&gt; 10    16 OCEAN COLOR     768</span>
+<span class="co">#&gt; # … with 1,012 more rows</span></code></pre></div>
+<p>What are the top keywords for each topic?</p>
+<div class="sourceCode" id="cb196"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">top_keywords</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">n</span>, n <span class="op">=</span> <span class="fl">5</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="va">ungroup</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>keyword <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/reorder_within.html">reorder_within</a></span><span class="op">(</span><span class="va">keyword</span>, <span class="va">n</span>, <span class="va">topic</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">keyword</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">topic</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Top keywords for each LDA topic"</span>,
+       x <span class="op">=</span> <span class="st">"Number of documents"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/reorder_within.html">scale_y_reordered</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">topic</span>, ncol <span class="op">=</span> <span class="fl">4</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plottopkeywords"></span>
+<img src="08-nasa-metadata_files/figure-html/plottopkeywords-1.png" alt="Top keywords in topic modeling of NASA metadata description field texts" width="90%"><p class="caption">
+Figure 8.9: Top keywords in topic modeling of NASA metadata description field texts
+</p>
+</div>
+<p>Let’s take a step back and remind ourselves what Figure <a href="nasa.html#fig:plottopkeywords">8.9</a> is telling us. NASA datasets are tagged with keywords by human beings, and we have built an LDA topic model (with 24 topics) for the description fields of the NASA datasets. This plot answers the question, “For the datasets with description fields that have a high probability of belonging to a given topic, what are the most common human-assigned keywords?”</p>
+<p>It’s interesting that the keywords for topics 13, 16, and 18 are essentially duplicates of each other (“OCEAN COLOR”, “OCEAN OPTICS”, “OCEANS”), because the top words in those topics do exhibit meaningful differences, as shown in Figure <a href="nasa.html#fig:plotbeta">8.6</a>. Also note that by number of documents, the combination of 13, 16, and 18 is quite a large percentage of the total number of datasets represented in this plot, and even more if we were to include topic 11. By number, there are <em>many</em> datasets at NASA that deal with oceans, ocean color, and ocean optics. We see “PROJECT COMPLETED” in topics 9, 10, and 21, along with the names of NASA laboratories and research centers. Other important subject areas that stand out are groups of keywords about atmospheric science, budget/finance, and population/human dimensions. We can go back to Figure <a href="nasa.html#fig:plotbeta">8.6</a> on terms and topics to see which words in the description fields are driving datasets being assigned to these topics. For example, topic 4 is associated with keywords about population and human dimensions, and some of the top terms for that topic are “population”, “international”, “center”, and “university”.</p>
+</div>
+</div>
+<div id="summary-7" class="section level2">
+<h2>
+<span class="header-section-number">8.5</span> Summary<a class="anchor" aria-label="anchor" href="#summary-7"><i class="fas fa-link"></i></a>
+</h2>
+<p>By using a combination of network analysis, tf-idf, and topic modeling, we have come to a greater understanding of how datasets are related at NASA. Specifically, we have more information now about how keywords are connected to each other and which datasets are likely to be related. The topic model could be used to suggest keywords based on the words in the description field, or the work on the keywords could suggest the most important combination of keywords for certain areas of study.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></div>
+<div class="next"><a href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#nasa"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li>
+<a class="nav-link" href="#how-data-is-organized-at-nasa"><span class="header-section-number">8.1</span> How data is organized at NASA</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#wrangling-and-tidying-the-data"><span class="header-section-number">8.1.1</span> Wrangling and tidying the data</a></li>
+<li><a class="nav-link" href="#some-initial-simple-exploration"><span class="header-section-number">8.1.2</span> Some initial simple exploration</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#word-co-ocurrences-and-correlations"><span class="header-section-number">8.2</span> Word co-ocurrences and correlations</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#networks-of-description-and-title-words"><span class="header-section-number">8.2.1</span> Networks of Description and Title Words</a></li>
+<li><a class="nav-link" href="#networks-of-keywords"><span class="header-section-number">8.2.2</span> Networks of Keywords</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#calculating-tf-idf-for-the-description-fields"><span class="header-section-number">8.3</span> Calculating tf-idf for the description fields</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#what-is-tf-idf-for-the-description-field-words"><span class="header-section-number">8.3.1</span> What is tf-idf for the description field words?</a></li>
+<li><a class="nav-link" href="#connecting-description-fields-to-keywords"><span class="header-section-number">8.3.2</span> Connecting description fields to keywords</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#topic-modeling"><span class="header-section-number">8.4</span> Topic modeling</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#casting-to-a-document-term-matrix"><span class="header-section-number">8.4.1</span> Casting to a document-term matrix</a></li>
+<li><a class="nav-link" href="#ready-for-topic-modeling"><span class="header-section-number">8.4.2</span> Ready for topic modeling</a></li>
+<li><a class="nav-link" href="#interpreting-the-topic-model"><span class="header-section-number">8.4.3</span> Interpreting the topic model</a></li>
+<li><a class="nav-link" href="#connecting-topic-modeling-with-keywords"><span class="header-section-number">8.4.4</span> Connecting topic modeling with keywords</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#summary-7"><span class="header-section-number">8.5</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dgrtwo/tidy-text-mining/blob/master/08-nasa-metadata.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dgrtwo/tidy-text-mining/edit/master/08-nasa-metadata.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Text Mining with R</strong>: A Tidy Approach" was written by Julia Silge and David Robinson. It was last built on 2022-02-07.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

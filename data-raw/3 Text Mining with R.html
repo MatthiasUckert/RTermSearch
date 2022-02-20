@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>3 Analyzing word and document frequency: tf-idf | Text Mining with R</title>
+<meta name="author" content="Julia Silge and David Robinson">
+<meta name="description" content="A central question in text mining and natural language processing is how to quantify what a document is about. Can we do this by looking at the words that make up the document? One measure of how...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="3 Analyzing word and document frequency: tf-idf | Text Mining with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://www.tidytextmining.com/tfidf.html">
+<meta property="og:image" content="https://www.tidytextmining.com/images/cover.png">
+<meta property="og:description" content="A central question in text mining and natural language processing is how to quantify what a document is about. Can we do this by looking at the words that make up the document? One measure of how...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="3 Analyzing word and document frequency: tf-idf | Text Mining with R">
+<meta name="twitter:description" content="A central question in text mining and natural language processing is how to quantify what a document is about. Can we do this by looking at the words that make up the document? One measure of how...">
+<meta name="twitter:image" content="https://www.tidytextmining.com/images/cover.png">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-68765210-2', 'auto');
+    ga('send', 'pageview');
+  
+  </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="A Tidy Approach">Text Mining with R</a>:
+        <small class="text-muted">A Tidy Approach</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome to Text Mining with R</a></li>
+<li><a class="" href="preface.html">Preface</a></li>
+<li><a class="" href="tidytext.html"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="" href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></li>
+<li><a class="active" href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="" href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li><a class="" href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li><a class="" href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></li>
+<li><a class="" href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></li>
+<li><a class="" href="nasa.html"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li><a class="" href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">10</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dgrtwo/tidy-text-mining">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="tfidf" class="section level1">
+<h1>
+<span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf<a class="anchor" aria-label="anchor" href="#tfidf"><i class="fas fa-link"></i></a>
+</h1>
+<p>A central question in text mining and natural language processing is how to quantify what a document is about. Can we do this by looking at the words that make up the document? One measure of how important a word may be is its <em>term frequency</em> (tf), how frequently a word occurs in a document, as we examined in Chapter <a href="tidytext.html#tidytext">1</a>. There are words in a document, however, that occur many times but may not be important; in English, these are probably words like “the”, “is”, “of”, and so forth. We might take the approach of adding words like these to a list of stop words and removing them before analysis, but it is possible that some of these words might be more important in some documents than others. A list of stop words is not a very sophisticated approach to adjusting term frequency for commonly used words.</p>
+<p>Another approach is to look at a term’s <em>inverse document frequency</em> (idf), which decreases the weight for commonly used words and increases the weight for words that are not used very much in a collection of documents. This can be combined with term frequency to calculate a term’s <em>tf-idf</em> (the two quantities multiplied together), the frequency of a term adjusted for how rarely it is used.</p>
+<div class="rmdnote">
+<p>
+The statistic <strong>tf-idf</strong> is intended to measure how important a word is to a document in a collection (or corpus) of documents, for example, to one novel in a collection of novels or to one website in a collection of websites.
+</p>
+</div>
+<p>It is a rule-of-thumb or heuristic quantity; while it has proved useful in text mining, search engines, etc., its theoretical foundations are considered less than firm by information theory experts. The inverse document frequency for any given term is defined as</p>
+<p><span class="math display">\[idf(\text{term}) = \ln{\left(\frac{n_{\text{documents}}}{n_{\text{documents containing term}}}\right)}\]</span></p>
+<p>We can use tidy data principles, as described in Chapter <a href="tidytext.html#tidytext">1</a>, to approach tf-idf analysis and use consistent, effective tools to quantify how important various terms are in a document that is part of a collection.</p>
+<div id="term-frequency-in-jane-austens-novels" class="section level2">
+<h2>
+<span class="header-section-number">3.1</span> Term frequency in Jane Austen’s novels<a class="anchor" aria-label="anchor" href="#term-frequency-in-jane-austens-novels"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let’s start by looking at the published novels of Jane Austen and examine first term frequency, then tf-idf. We can start just by using dplyr verbs such as <code><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">join()</a></code>. What are the most commonly used words in Jane Austen’s novels? (Let’s also calculate the total words in each novel here, for later use.)</p>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr">janeaustenr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+
+<span class="va">book_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">book</span>, <span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">total_words</span> <span class="op">&lt;-</span> <span class="va">book_words</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">book</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">book_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">left_join</a></span><span class="op">(</span><span class="va">book_words</span>, <span class="va">total_words</span><span class="op">)</span>
+
+<span class="va">book_words</span>
+<span class="co">#&gt; # A tibble: 40,379 × 4</span>
+<span class="co">#&gt;    book              word      n  total</span>
+<span class="co">#&gt;    &lt;fct&gt;             &lt;chr&gt; &lt;int&gt;  &lt;int&gt;</span>
+<span class="co">#&gt;  1 Mansfield Park    the    6206 160460</span>
+<span class="co">#&gt;  2 Mansfield Park    to     5475 160460</span>
+<span class="co">#&gt;  3 Mansfield Park    and    5438 160460</span>
+<span class="co">#&gt;  4 Emma              to     5239 160996</span>
+<span class="co">#&gt;  5 Emma              the    5201 160996</span>
+<span class="co">#&gt;  6 Emma              and    4896 160996</span>
+<span class="co">#&gt;  7 Mansfield Park    of     4778 160460</span>
+<span class="co">#&gt;  8 Pride &amp; Prejudice the    4331 122204</span>
+<span class="co">#&gt;  9 Emma              of     4291 160996</span>
+<span class="co">#&gt; 10 Pride &amp; Prejudice to     4162 122204</span>
+<span class="co">#&gt; # … with 40,369 more rows</span></code></pre></div>
+<p>There is one row in this <code>book_words</code> data frame for each word-book combination; <code>n</code> is the number of times that word is used in that book and <code>total</code> is the total words in that book. The usual suspects are here with the highest <code>n</code>, “the”, “and”, “to”, and so forth. In Figure <a href="tfidf.html#fig:plottf">3.1</a>, let’s look at the distribution of <code>n/total</code> for each novel, the number of times a word appears in a novel divided by the total number of terms (words) in that novel. This is exactly what term frequency is.</p>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">book_words</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span><span class="op">/</span><span class="va">total</span>, fill <span class="op">=</span> <span class="va">book</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html">xlim</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">0.0009</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">book</span>, ncol <span class="op">=</span> <span class="fl">2</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plottf"></span>
+<img src="03-tf-idf_files/figure-html/plottf-1.png" alt="Term frequency distribution in Jane Austen's novels" width="90%"><p class="caption">
+Figure 3.1: Term frequency distribution in Jane Austen’s novels
+</p>
+</div>
+<p>There are very long tails to the right for these novels (those extremely rare words!) that we have not shown in these plots. These plots exhibit similar distributions for all the novels, with many words that occur rarely and fewer words that occur frequently.</p>
+</div>
+<div id="zipfs-law" class="section level2">
+<h2>
+<span class="header-section-number">3.2</span> Zipf’s law<a class="anchor" aria-label="anchor" href="#zipfs-law"><i class="fas fa-link"></i></a>
+</h2>
+<p>Distributions like those shown in Figure <a href="tfidf.html#fig:plottf">3.1</a> are typical in language. In fact, those types of long-tailed distributions are so common in any given corpus of natural language (like a book, or a lot of text from a website, or spoken words) that the relationship between the frequency that a word is used and its rank has been the subject of study; a classic version of this relationship is called Zipf’s law, after George Zipf, a 20th century American linguist.</p>
+<div class="rmdnote">
+<p>
+Zipf’s law states that the frequency that a word appears is inversely proportional to its rank.
+</p>
+</div>
+<p>Since we have the data frame we used to plot term frequency, we can examine Zipf’s law for Jane Austen’s novels with just a few lines of dplyr functions.</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">freq_by_rank</span> <span class="op">&lt;-</span> <span class="va">book_words</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">book</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>rank <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/ranking.html">row_number</a></span><span class="op">(</span><span class="op">)</span>, 
+         `term frequency` <span class="op">=</span> <span class="va">n</span><span class="op">/</span><span class="va">total</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="va">freq_by_rank</span>
+<span class="co">#&gt; # A tibble: 40,379 × 6</span>
+<span class="co">#&gt;    book              word      n  total  rank `term frequency`</span>
+<span class="co">#&gt;    &lt;fct&gt;             &lt;chr&gt; &lt;int&gt;  &lt;int&gt; &lt;int&gt;            &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 Mansfield Park    the    6206 160460     1           0.0387</span>
+<span class="co">#&gt;  2 Mansfield Park    to     5475 160460     2           0.0341</span>
+<span class="co">#&gt;  3 Mansfield Park    and    5438 160460     3           0.0339</span>
+<span class="co">#&gt;  4 Emma              to     5239 160996     1           0.0325</span>
+<span class="co">#&gt;  5 Emma              the    5201 160996     2           0.0323</span>
+<span class="co">#&gt;  6 Emma              and    4896 160996     3           0.0304</span>
+<span class="co">#&gt;  7 Mansfield Park    of     4778 160460     4           0.0298</span>
+<span class="co">#&gt;  8 Pride &amp; Prejudice the    4331 122204     1           0.0354</span>
+<span class="co">#&gt;  9 Emma              of     4291 160996     4           0.0267</span>
+<span class="co">#&gt; 10 Pride &amp; Prejudice to     4162 122204     2           0.0341</span>
+<span class="co">#&gt; # … with 40,369 more rows</span></code></pre></div>
+<p>The <code>rank</code> column here tells us the rank of each word within the frequency table; the table was already ordered by <code>n</code> so we could use <code><a href="https://dplyr.tidyverse.org/reference/ranking.html">row_number()</a></code> to find the rank. Then, we can calculate the term frequency in the same way we did before. Zipf’s law is often visualized by plotting rank on the x-axis and term frequency on the y-axis, on logarithmic scales. Plotting this way, an inversely proportional relationship will have a constant, negative slope.</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">freq_by_rank</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">rank</span>, <span class="va">`term frequency`</span>, color <span class="op">=</span> <span class="va">book</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1.1</span>, alpha <span class="op">=</span> <span class="fl">0.8</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:zipf"></span>
+<img src="03-tf-idf_files/figure-html/zipf-1.png" alt="Zipf's law for Jane Austen's novels" width="90%"><p class="caption">
+Figure 3.2: Zipf’s law for Jane Austen’s novels
+</p>
+</div>
+<p>Notice that Figure <a href="tfidf.html#fig:zipf">3.2</a> is in log-log coordinates. We see that all six of Jane Austen’s novels are similar to each other, and that the relationship between rank and frequency does have negative slope. It is not quite constant, though; perhaps we could view this as a broken <a href="https://en.wikipedia.org/wiki/Power_law">power law</a> with, say, three sections. Let’s see what the exponent of the power law is for the middle section of the rank range.</p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">rank_subset</span> <span class="op">&lt;-</span> <span class="va">freq_by_rank</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">rank</span> <span class="op">&lt;</span> <span class="fl">500</span>,
+         <span class="va">rank</span> <span class="op">&gt;</span> <span class="fl">10</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">`term frequency`</span><span class="op">)</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">rank</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">rank_subset</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; lm(formula = log10(`term frequency`) ~ log10(rank), data = rank_subset)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt; (Intercept)  log10(rank)  </span>
+<span class="co">#&gt;     -0.6226      -1.1125</span></code></pre></div>
+<p>Classic versions of Zipf’s law have</p>
+<p><span class="math display">\[\text{frequency} \propto \frac{1}{\text{rank}}\]</span>
+and we have in fact gotten a slope close to -1 here. Let’s plot this fitted power law with the data in Figure <a href="tfidf.html#fig:zipffit">3.3</a> to see how it looks.</p>
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">freq_by_rank</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">rank</span>, <span class="va">`term frequency`</span>, color <span class="op">=</span> <span class="va">book</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="op">-</span><span class="fl">0.62</span>, slope <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, 
+              color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1.1</span>, alpha <span class="op">=</span> <span class="fl">0.8</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span> 
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:zipffit"></span>
+<img src="03-tf-idf_files/figure-html/zipffit-1.png" alt="Fitting an exponent for Zipf's law with Jane Austen's novels" width="90%"><p class="caption">
+Figure 3.3: Fitting an exponent for Zipf’s law with Jane Austen’s novels
+</p>
+</div>
+<p>We have found a result close to the classic version of Zipf’s law for the corpus of Jane Austen’s novels. The deviations we see here at high rank are not uncommon for many kinds of language; a corpus of language often contains fewer rare words than predicted by a single power law. The deviations at low rank are more unusual. Jane Austen uses a lower percentage of the most common words than many collections of language. This kind of analysis could be extended to compare authors, or to compare any other collections of text; it can be implemented simply using tidy data principles.</p>
+</div>
+<div id="the-bind_tf_idf-function" class="section level2">
+<h2>
+<span class="header-section-number">3.3</span> The <code>bind_tf_idf()</code> function<a class="anchor" aria-label="anchor" href="#the-bind_tf_idf-function"><i class="fas fa-link"></i></a>
+</h2>
+<p>The idea of tf-idf is to find the important words for the content of each document by decreasing the weight for commonly used words and increasing the weight for words that are not used very much in a collection or corpus of documents, in this case, the group of Jane Austen’s novels as a whole. Calculating tf-idf attempts to find the words that are important (i.e., common) in a text, but not <em>too</em> common. Let’s do that now.</p>
+<p>The <code><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf()</a></code> function in the tidytext package takes a tidy text dataset as input with one row per token (term), per document. One column (<code>word</code> here) contains the terms/tokens, one column contains the documents (<code>book</code> in this case), and the last necessary column contains the counts, how many times each document contains each term (<code>n</code> in this example). We calculated a <code>total</code> for each book for our explorations in previous sections, but it is not necessary for the <code><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf()</a></code> function; the table only needs to contain all the words in each document.</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">book_tf_idf</span> <span class="op">&lt;-</span> <span class="va">book_words</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">book</span>, <span class="va">n</span><span class="op">)</span>
+
+<span class="va">book_tf_idf</span>
+<span class="co">#&gt; # A tibble: 40,379 × 7</span>
+<span class="co">#&gt;    book              word      n  total     tf   idf tf_idf</span>
+<span class="co">#&gt;    &lt;fct&gt;             &lt;chr&gt; &lt;int&gt;  &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 Mansfield Park    the    6206 160460 0.0387     0      0</span>
+<span class="co">#&gt;  2 Mansfield Park    to     5475 160460 0.0341     0      0</span>
+<span class="co">#&gt;  3 Mansfield Park    and    5438 160460 0.0339     0      0</span>
+<span class="co">#&gt;  4 Emma              to     5239 160996 0.0325     0      0</span>
+<span class="co">#&gt;  5 Emma              the    5201 160996 0.0323     0      0</span>
+<span class="co">#&gt;  6 Emma              and    4896 160996 0.0304     0      0</span>
+<span class="co">#&gt;  7 Mansfield Park    of     4778 160460 0.0298     0      0</span>
+<span class="co">#&gt;  8 Pride &amp; Prejudice the    4331 122204 0.0354     0      0</span>
+<span class="co">#&gt;  9 Emma              of     4291 160996 0.0267     0      0</span>
+<span class="co">#&gt; 10 Pride &amp; Prejudice to     4162 122204 0.0341     0      0</span>
+<span class="co">#&gt; # … with 40,369 more rows</span></code></pre></div>
+<p>Notice that idf and thus tf-idf are zero for these extremely common words. These are all words that appear in all six of Jane Austen’s novels, so the idf term (which will then be the natural log of 1) is zero. The inverse document frequency (and thus tf-idf) is very low (near zero) for words that occur in many of the documents in a collection; this is how this approach decreases the weight for common words. The inverse document frequency will be a higher number for words that occur in fewer of the documents in the collection.</p>
+<p>Let’s look at terms with high tf-idf in Jane Austen’s works.</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">book_tf_idf</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">total</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 40,379 × 6</span>
+<span class="co">#&gt;    book                word          n      tf   idf  tf_idf</span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;chr&gt;     &lt;int&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 Sense &amp; Sensibility elinor      623 0.00519  1.79 0.00931</span>
+<span class="co">#&gt;  2 Sense &amp; Sensibility marianne    492 0.00410  1.79 0.00735</span>
+<span class="co">#&gt;  3 Mansfield Park      crawford    493 0.00307  1.79 0.00551</span>
+<span class="co">#&gt;  4 Pride &amp; Prejudice   darcy       373 0.00305  1.79 0.00547</span>
+<span class="co">#&gt;  5 Persuasion          elliot      254 0.00304  1.79 0.00544</span>
+<span class="co">#&gt;  6 Emma                emma        786 0.00488  1.10 0.00536</span>
+<span class="co">#&gt;  7 Northanger Abbey    tilney      196 0.00252  1.79 0.00452</span>
+<span class="co">#&gt;  8 Emma                weston      389 0.00242  1.79 0.00433</span>
+<span class="co">#&gt;  9 Pride &amp; Prejudice   bennet      294 0.00241  1.79 0.00431</span>
+<span class="co">#&gt; 10 Persuasion          wentworth   191 0.00228  1.79 0.00409</span>
+<span class="co">#&gt; # … with 40,369 more rows</span></code></pre></div>
+<p>Here we see all proper nouns, names that are in fact important in these novels. None of them occur in all of novels, and they are important, characteristic words for each text within the corpus of Jane Austen’s novels.</p>
+<div class="rmdnote">
+<p>
+Some of the values for idf are the same for different terms because there are 6 documents in this corpus and we are seeing the numerical value for <span class="math inline"><span class="math inline">\(\ln(6/1)\)</span></span>, <span class="math inline"><span class="math inline">\(\ln(6/2)\)</span></span>, etc.
+</p>
+</div>
+<p>Let’s look at a visualization for these high tf-idf words in Figure <a href="tfidf.html#fig:plotseparate">3.4</a>.</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://forcats.tidyverse.org">forcats</a></span><span class="op">)</span>
+
+<span class="va">book_tf_idf</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">book</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">tf_idf</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">tf_idf</span>, <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_reorder.html">fct_reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">tf_idf</span><span class="op">)</span>, fill <span class="op">=</span> <span class="va">book</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">book</span>, ncol <span class="op">=</span> <span class="fl">2</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"tf-idf"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotseparate"></span>
+<img src="03-tf-idf_files/figure-html/plotseparate-1.png" alt="Highest tf-idf words in each Jane Austen novel" width="90%"><p class="caption">
+Figure 3.4: Highest tf-idf words in each Jane Austen novel
+</p>
+</div>
+<p>Still all proper nouns in Figure <a href="tfidf.html#fig:plotseparate">3.4</a>! These words are, as measured by tf-idf, the most important to each novel and most readers would likely agree. What measuring tf-idf has done here is show us that Jane Austen used similar language across her six novels, and what distinguishes one novel from the rest within the collection of her works are the proper nouns, the names of people and places. This is the point of tf-idf; it identifies words that are important to one document within a collection of documents.</p>
+</div>
+<div id="a-corpus-of-physics-texts" class="section level2">
+<h2>
+<span class="header-section-number">3.4</span> A corpus of physics texts<a class="anchor" aria-label="anchor" href="#a-corpus-of-physics-texts"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let’s work with another corpus of documents, to see what terms are important in a different set of works. In fact, let’s leave the world of fiction and narrative entirely. Let’s download some classic physics texts from Project Gutenberg and see what terms are important in these works, as measured by tf-idf. Let’s download <a href="http://www.gutenberg.org/ebooks/37729"><em>Discourse on Floating Bodies</em> by Galileo Galilei</a>, <a href="http://www.gutenberg.org/ebooks/14725"><em>Treatise on Light</em> by Christiaan Huygens</a>, <a href="http://www.gutenberg.org/ebooks/13476"><em>Experiments with Alternate Currents of High Potential and High Frequency</em> by Nikola Tesla</a>, and <a href="http://www.gutenberg.org/ebooks/30155"><em>Relativity: The Special and General Theory</em> by Albert Einstein</a>.</p>
+<p>This is a pretty diverse bunch. They may all be physics classics, but they were written across a 300-year timespan, and some of them were first written in other languages and then translated to English. Perfectly homogeneous these are not, but that doesn’t stop this from being an interesting exercise!</p>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/gutenbergr/">gutenbergr</a></span><span class="op">)</span>
+<span class="va">physics</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">37729</span>, <span class="fl">14725</span>, <span class="fl">13476</span>, <span class="fl">30155</span><span class="op">)</span>, 
+                              meta_fields <span class="op">=</span> <span class="st">"author"</span><span class="op">)</span></code></pre></div>
+<p>Now that we have the texts, let’s use <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> and <code><a href="https://dplyr.tidyverse.org/reference/count.html">count()</a></code> to find out how many times each word was used in each text.</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">physics_words</span> <span class="op">&lt;-</span> <span class="va">physics</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">author</span>, <span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">physics_words</span>
+<span class="co">#&gt; # A tibble: 12,671 × 3</span>
+<span class="co">#&gt;    author              word      n</span>
+<span class="co">#&gt;    &lt;chr&gt;               &lt;chr&gt; &lt;int&gt;</span>
+<span class="co">#&gt;  1 Galilei, Galileo    the    3760</span>
+<span class="co">#&gt;  2 Tesla, Nikola       the    3604</span>
+<span class="co">#&gt;  3 Huygens, Christiaan the    3553</span>
+<span class="co">#&gt;  4 Einstein, Albert    the    2993</span>
+<span class="co">#&gt;  5 Galilei, Galileo    of     2049</span>
+<span class="co">#&gt;  6 Einstein, Albert    of     2028</span>
+<span class="co">#&gt;  7 Tesla, Nikola       of     1737</span>
+<span class="co">#&gt;  8 Huygens, Christiaan of     1708</span>
+<span class="co">#&gt;  9 Huygens, Christiaan to     1207</span>
+<span class="co">#&gt; 10 Tesla, Nikola       a      1176</span>
+<span class="co">#&gt; # … with 12,661 more rows</span></code></pre></div>
+<p>Here we see just the raw counts; we need to remember that these documents are all different lengths. Let’s go ahead and calculate tf-idf, then visualize the high tf-idf words in Figure <a href="tfidf.html#fig:physicsseparate">3.5</a>.</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">plot_physics</span> <span class="op">&lt;-</span> <span class="va">physics_words</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">author</span>, <span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>author <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">author</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Galilei, Galileo"</span>,
+                                            <span class="st">"Huygens, Christiaan"</span>, 
+                                            <span class="st">"Tesla, Nikola"</span>,
+                                            <span class="st">"Einstein, Albert"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">plot_physics</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">author</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">tf_idf</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://forcats.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">tf_idf</span>, <span class="va">word</span>, fill <span class="op">=</span> <span class="va">author</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"tf-idf"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">author</span>, ncol <span class="op">=</span> <span class="fl">2</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:physicsseparate"></span>
+<img src="03-tf-idf_files/figure-html/physicsseparate-1.png" alt="Highest tf-idf words in each physics texts" width="90%"><p class="caption">
+Figure 3.5: Highest tf-idf words in each physics texts
+</p>
+</div>
+<p>Very interesting indeed. One thing we see here is “<em>k</em>” in the Einstein text?!</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
+
+<span class="va">physics</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">text</span>, <span class="st">"_k_"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">text</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 7 × 1</span>
+<span class="co">#&gt;   text                                                                  </span>
+<span class="co">#&gt;   &lt;chr&gt;                                                                 </span>
+<span class="co">#&gt; 1 surface AB at the points AK_k_B. Then instead of the hemispherical    </span>
+<span class="co">#&gt; 2 would needs be that from all the other points K_k_B there should      </span>
+<span class="co">#&gt; 3 necessarily be equal to CD, because C_k_ is equal to CK, and C_g_ to  </span>
+<span class="co">#&gt; 4 the crystal at K_k_, all the points of the wave CO_oc_ will have      </span>
+<span class="co">#&gt; 5 O_o_ has reached K_k_. Which is easy to comprehend, since, of these   </span>
+<span class="co">#&gt; 6 CO_oc_ in the crystal, when O_o_ has arrived at K_k_, because it forms</span>
+<span class="co">#&gt; 7 ρ is the average density of the matter and _k_ is a constant connected</span></code></pre></div>
+<p>Some cleaning up of the text may be in order. Also notice that there are separate “co” and “ordinate” items in the high tf-idf words for the Einstein text; the <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> function separates around punctuation like hyphens by default. Notice that the tf-idf scores for “co” and “ordinate” are close to same!</p>
+<p>“AB”, “RC”, and so forth are names of rays, circles, angles, and so forth for Huygens.</p>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">physics</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">text</span>, <span class="st">"RC"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">text</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 44 × 1</span>
+<span class="co">#&gt;    text                                                                  </span>
+<span class="co">#&gt;    &lt;chr&gt;                                                                 </span>
+<span class="co">#&gt;  1 line RC, parallel and equal to AB, to be a portion of a wave of light,</span>
+<span class="co">#&gt;  2 represents the partial wave coming from the point A, after the wave RC</span>
+<span class="co">#&gt;  3 be the propagation of the wave RC which fell on AB, and would be the  </span>
+<span class="co">#&gt;  4 transparent body; seeing that the wave RC, having come to the aperture</span>
+<span class="co">#&gt;  5 incident rays. Let there be such a ray RC falling upon the surface    </span>
+<span class="co">#&gt;  6 CK. Make CO perpendicular to RC, and across the angle KCO adjust OK,  </span>
+<span class="co">#&gt;  7 the required refraction of the ray RC. The demonstration of this is,  </span>
+<span class="co">#&gt;  8 explaining ordinary refraction. For the refraction of the ray RC is   </span>
+<span class="co">#&gt;  9 29. Now as we have found CI the refraction of the ray RC, similarly   </span>
+<span class="co">#&gt; 10 the ray _r_C is inclined equally with RC, the line C_d_ will          </span>
+<span class="co">#&gt; # … with 34 more rows</span></code></pre></div>
+<p>Let’s remove some of these less meaningful words to make a better, more meaningful plot. Notice that we make a custom list of stop words and use <code><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join()</a></code> to remove them; this is a flexible approach that can be used in many situations. We will need to go back a few steps since we are removing words from the tidy data frame.</p>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mystopwords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"eq"</span>, <span class="st">"co"</span>, <span class="st">"rc"</span>, <span class="st">"ac"</span>, <span class="st">"ak"</span>, <span class="st">"bn"</span>, 
+                                   <span class="st">"fig"</span>, <span class="st">"file"</span>, <span class="st">"cg"</span>, <span class="st">"cb"</span>, <span class="st">"cm"</span>,
+                               <span class="st">"ab"</span>, <span class="st">"_k"</span>, <span class="st">"_k_"</span>, <span class="st">"_x"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">physics_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">physics_words</span>, <span class="va">mystopwords</span>, 
+                           by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>
+
+<span class="va">plot_physics</span> <span class="op">&lt;-</span> <span class="va">physics_words</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">author</span>, <span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_remove.html">str_remove_all</a></span><span class="op">(</span><span class="va">word</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">author</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">tf_idf</span>, n <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_reorder.html">fct_reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>author <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">author</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Galilei, Galileo"</span>,
+                                            <span class="st">"Huygens, Christiaan"</span>,
+                                            <span class="st">"Tesla, Nikola"</span>,
+                                            <span class="st">"Einstein, Albert"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_physics</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">tf_idf</span>, <span class="va">word</span>, fill <span class="op">=</span> <span class="va">author</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">author</span>, ncol <span class="op">=</span> <span class="fl">2</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"tf-idf"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:mystopwords"></span>
+<img src="03-tf-idf_files/figure-html/mystopwords-1.png" alt="Highest tf-idf words in classic physics texts" width="90%"><p class="caption">
+Figure 3.6: Highest tf-idf words in classic physics texts
+</p>
+</div>
+<p>One thing we can conclude from Figure <a href="tfidf.html#fig:mystopwords">3.6</a> is that we don’t hear enough about ramparts or things being ethereal in physics today.</p>
+
+<div class="rmdnote">
+The Jane Austen and physics examples in this chapter did not have much overlap in words with high tf-idf across categories (books, authors). If you find you do share words with high tf-idf across categories, you may want to use <code><a href="https://rdrr.io/pkg/tidytext/man/reorder_within.html">reorder_within()</a></code> and <code>scale_*_reordered()</code> to create visualizations, as shown in Section <a href="topicmodeling.html#word-topic-probabilities">6.1.1</a>.
+</div>
+
+</div>
+<div id="summary-2" class="section level2">
+<h2>
+<span class="header-section-number">3.5</span> Summary<a class="anchor" aria-label="anchor" href="#summary-2"><i class="fas fa-link"></i></a>
+</h2>
+<p>Using term frequency and inverse document frequency allows us to find words that are characteristic for one document within a collection of documents, whether that document is a novel or physics text or webpage. Exploring term frequency on its own can give us insight into how language is used in a collection of natural language, and dplyr verbs like <code><a href="https://dplyr.tidyverse.org/reference/count.html">count()</a></code> and <code><a href="https://rdrr.io/r/base/rank.html">rank()</a></code> give us tools to reason about term frequency. The tidytext package uses an implementation of tf-idf consistent with tidy data principles that enables us to see how different words are important in documents within a collection or corpus of documents.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></div>
+<div class="next"><a href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#tfidf"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="nav-link" href="#term-frequency-in-jane-austens-novels"><span class="header-section-number">3.1</span> Term frequency in Jane Austen’s novels</a></li>
+<li><a class="nav-link" href="#zipfs-law"><span class="header-section-number">3.2</span> Zipf’s law</a></li>
+<li><a class="nav-link" href="#the-bind_tf_idf-function"><span class="header-section-number">3.3</span> The bind_tf_idf() function</a></li>
+<li><a class="nav-link" href="#a-corpus-of-physics-texts"><span class="header-section-number">3.4</span> A corpus of physics texts</a></li>
+<li><a class="nav-link" href="#summary-2"><span class="header-section-number">3.5</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dgrtwo/tidy-text-mining/blob/master/03-tf-idf.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dgrtwo/tidy-text-mining/edit/master/03-tf-idf.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Text Mining with R</strong>: A Tidy Approach" was written by Julia Silge and David Robinson. It was last built on 2022-02-07.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

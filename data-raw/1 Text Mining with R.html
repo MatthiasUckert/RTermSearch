@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>1 The tidy text format | Text Mining with R</title>
+<meta name="author" content="Julia Silge and David Robinson">
+<meta name="description" content="Using tidy data principles is a powerful way to make handling data easier and more effective, and this is no less true when it comes to dealing with text. As described by Hadley Wickham (Wickham...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="1 The tidy text format | Text Mining with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://www.tidytextmining.com/tidytext.html">
+<meta property="og:image" content="https://www.tidytextmining.com/images/cover.png">
+<meta property="og:description" content="Using tidy data principles is a powerful way to make handling data easier and more effective, and this is no less true when it comes to dealing with text. As described by Hadley Wickham (Wickham...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="1 The tidy text format | Text Mining with R">
+<meta name="twitter:description" content="Using tidy data principles is a powerful way to make handling data easier and more effective, and this is no less true when it comes to dealing with text. As described by Hadley Wickham (Wickham...">
+<meta name="twitter:image" content="https://www.tidytextmining.com/images/cover.png">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-68765210-2', 'auto');
+    ga('send', 'pageview');
+  
+  </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="A Tidy Approach">Text Mining with R</a>:
+        <small class="text-muted">A Tidy Approach</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome to Text Mining with R</a></li>
+<li><a class="" href="preface.html">Preface</a></li>
+<li><a class="active" href="tidytext.html"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="" href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></li>
+<li><a class="" href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="" href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li><a class="" href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li><a class="" href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></li>
+<li><a class="" href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></li>
+<li><a class="" href="nasa.html"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li><a class="" href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">10</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dgrtwo/tidy-text-mining">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="tidytext" class="section level1">
+<h1>
+<span class="header-section-number">1</span> The tidy text format<a class="anchor" aria-label="anchor" href="#tidytext"><i class="fas fa-link"></i></a>
+</h1>
+<p>Using tidy data principles is a powerful way to make handling data easier and more effective, and this is no less true when it comes to dealing with text. As described by Hadley Wickham <span class="citation">(Wickham <a href="references.html#ref-tidydata" role="doc-biblioref">2014</a>)</span>, tidy data has a specific structure:</p>
+<ul>
+<li>Each variable is a column</li>
+<li>Each observation is a row</li>
+<li>Each type of observational unit is a table</li>
+</ul>
+<p>We thus define the tidy text format as being <strong>a table with one-token-per-row.</strong> A token is a meaningful unit of text, such as a word, that we are interested in using for analysis, and tokenization is the process of splitting text into tokens. This one-token-per-row structure is in contrast to the ways text is often stored in current analyses, perhaps as strings or in a document-term matrix. For tidy text mining, the <strong>token</strong> that is stored in each row is most often a single word, but can also be an n-gram, sentence, or paragraph. In the tidytext package, we provide functionality to tokenize by commonly used units of text like these and convert to a one-term-per-row format.</p>
+<p>Tidy data sets allow manipulation with a standard set of “tidy” tools, including popular packages such as dplyr <span class="citation">(Wickham and Francois <a href="references.html#ref-R-dplyr" role="doc-biblioref">2016</a>)</span>, tidyr <span class="citation">(Wickham <a href="references.html#ref-R-tidyr" role="doc-biblioref">2016</a>)</span>, ggplot2 <span class="citation">(Wickham <a href="references.html#ref-R-ggplot2" role="doc-biblioref">2009</a>)</span>, and broom <span class="citation">(Robinson <a href="references.html#ref-R-broom" role="doc-biblioref">2017</a>)</span>. By keeping the input and output in tidy tables, users can transition fluidly between these packages. We’ve found these tidy tools extend naturally to many text analyses and explorations.</p>
+<p>At the same time, the tidytext package doesn’t expect a user to keep text data in a tidy form at all times during an analysis. The package includes functions to <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> objects (see the broom package [Robinson et al cited above]) from popular text mining R packages such as tm <span class="citation">(Feinerer, Hornik, and Meyer <a href="references.html#ref-tm" role="doc-biblioref">2008</a>)</span> and quanteda <span class="citation">(Benoit and Nulty <a href="references.html#ref-R-quanteda" role="doc-biblioref">2016</a>)</span>. This allows, for example, a workflow where importing, filtering, and processing is done using dplyr and other tidy tools, after which the data is converted into a document-term matrix for machine learning applications. The models can then be re-converted into a tidy form for interpretation and visualization with ggplot2.</p>
+<div id="contrasting-tidy-text-with-other-data-structures" class="section level2">
+<h2>
+<span class="header-section-number">1.1</span> Contrasting tidy text with other data structures<a class="anchor" aria-label="anchor" href="#contrasting-tidy-text-with-other-data-structures"><i class="fas fa-link"></i></a>
+</h2>
+<p>As we stated above, we define the tidy text format as being a table with <strong>one-token-per-row.</strong> Structuring text data in this way means that it conforms to tidy data principles and can be manipulated with a set of consistent tools. This is worth contrasting with the ways text is often stored in text mining approaches.</p>
+<ul>
+<li>
+<strong>String</strong>: Text can, of course, be stored as strings, i.e., character vectors, within R, and often text data is first read into memory in this form.</li>
+<li>
+<strong>Corpus</strong>: These types of objects typically contain raw strings annotated with additional metadata and details.</li>
+<li>
+<strong>Document-term matrix</strong>: This is a sparse matrix describing a collection (i.e., a corpus) of documents with one row for each document and one column for each term. The value in the matrix is typically word count or tf-idf (see Chapter <a href="tfidf.html#tfidf">3</a>).</li>
+</ul>
+<p>Let’s hold off on exploring corpus and document-term matrix objects until Chapter <a href="dtm.html#dtm">5</a>, and get down to the basics of converting text to a tidy format.</p>
+</div>
+<div id="the-unnest_tokens-function" class="section level2">
+<h2>
+<span class="header-section-number">1.2</span> The <code>unnest_tokens</code> function<a class="anchor" aria-label="anchor" href="#the-unnest_tokens-function"><i class="fas fa-link"></i></a>
+</h2>
+<p>Emily Dickinson wrote some lovely text in her time.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">text</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Because I could not stop for Death -"</span>,
+          <span class="st">"He kindly stopped for me -"</span>,
+          <span class="st">"The Carriage held but just Ourselves -"</span>,
+          <span class="st">"and Immortality"</span><span class="op">)</span>
+
+<span class="va">text</span>
+<span class="co">#&gt; [1] "Because I could not stop for Death -"  </span>
+<span class="co">#&gt; [2] "He kindly stopped for me -"            </span>
+<span class="co">#&gt; [3] "The Carriage held but just Ourselves -"</span>
+<span class="co">#&gt; [4] "and Immortality"</span></code></pre></div>
+<p>This is a typical character vector that we might want to analyze. In order to turn it into a tidy text dataset, we first need to put it into a data frame.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="va">text_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>line <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, text <span class="op">=</span> <span class="va">text</span><span class="op">)</span>
+
+<span class="va">text_df</span>
+<span class="co">#&gt; # A tibble: 4 × 2</span>
+<span class="co">#&gt;    line text                                  </span>
+<span class="co">#&gt;   &lt;int&gt; &lt;chr&gt;                                 </span>
+<span class="co">#&gt; 1     1 Because I could not stop for Death -  </span>
+<span class="co">#&gt; 2     2 He kindly stopped for me -            </span>
+<span class="co">#&gt; 3     3 The Carriage held but just Ourselves -</span>
+<span class="co">#&gt; 4     4 and Immortality</span></code></pre></div>
+<p>What does it mean that this data frame has printed out as a “tibble”? A tibble is a modern class of data frame within R, available in the dplyr and tibble packages, that has a convenient print method, will not convert strings to factors, and does not use row names. Tibbles are great for use with tidy tools.</p>
+<p>Notice that this data frame containing text isn’t yet compatible with tidy text analysis, though. We can’t filter out words or count which occur most frequently, since each row is made up of multiple combined words. We need to convert this so that it has <strong>one-token-per-document-per-row</strong>.</p>
+<div class="rmdnote">
+<p>
+A token is a meaningful unit of text, most often a word, that we are interested in using for further analysis, and tokenization is the process of splitting text into tokens.
+</p>
+</div>
+<p>In this first example, we only have one document (the poem), but we will explore examples with multiple documents soon.</p>
+<p>Within our tidy text framework, we need to both break the text into individual tokens (a process called <em>tokenization</em>) <em>and</em> transform it to a tidy data structure. To do this, we use tidytext’s <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> function.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+
+<span class="va">text_df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 20 × 2</span>
+<span class="co">#&gt;     line word   </span>
+<span class="co">#&gt;    &lt;int&gt; &lt;chr&gt;  </span>
+<span class="co">#&gt;  1     1 because</span>
+<span class="co">#&gt;  2     1 i      </span>
+<span class="co">#&gt;  3     1 could  </span>
+<span class="co">#&gt;  4     1 not    </span>
+<span class="co">#&gt;  5     1 stop   </span>
+<span class="co">#&gt;  6     1 for    </span>
+<span class="co">#&gt;  7     1 death  </span>
+<span class="co">#&gt;  8     2 he     </span>
+<span class="co">#&gt;  9     2 kindly </span>
+<span class="co">#&gt; 10     2 stopped</span>
+<span class="co">#&gt; # … with 10 more rows</span></code></pre></div>
+<p>The two basic arguments to <code>unnest_tokens</code> used here are column names. First we have the output column name that will be created as the text is unnested into it (<code>word</code>, in this case), and then the input column that the text comes from (<code>text</code>, in this case). Remember that <code>text_df</code> above has a column called <code>text</code> that contains the data of interest.</p>
+<p>After using <code>unnest_tokens</code>, we’ve split each row so that there is one token (word) in each row of the new data frame; the default tokenization in <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> is for single words, as shown here. Also notice:</p>
+<ul>
+<li>Other columns, such as the line number each word came from, are retained.</li>
+<li>Punctuation has been stripped.</li>
+<li>By default, <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> converts the tokens to lowercase, which makes them easier to compare or combine with other datasets. (Use the <code>to_lower = FALSE</code> argument to turn off this behavior).</li>
+</ul>
+<p>Having the text data in this format lets us manipulate, process, and visualize the text using the standard set of tidy tools, namely dplyr, tidyr, and ggplot2, as shown in Figure <a href="tidytext.html#fig:tidyflow-ch1">1.1</a>.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tidyflow-ch1"></span>
+<img src="images/tmwr_0101.png" alt="A flowchart of a typical text analysis using tidy data principles. This chapter shows how to summarize and visualize text using these tools." width="100%"><p class="caption">
+Figure 1.1: A flowchart of a typical text analysis using tidy data principles. This chapter shows how to summarize and visualize text using these tools.
+</p>
+</div>
+</div>
+<div id="tidyausten" class="section level2">
+<h2>
+<span class="header-section-number">1.3</span> Tidying the works of Jane Austen<a class="anchor" aria-label="anchor" href="#tidyausten"><i class="fas fa-link"></i></a>
+</h2>
+<p>Let’s use the text of Jane Austen’s 6 completed, published novels from the <a href="https://cran.r-project.org/package=janeaustenr">janeaustenr</a> package <span class="citation">(Silge <a href="references.html#ref-R-janeaustenr" role="doc-biblioref">2016</a>)</span>, and transform them into a tidy format. The janeaustenr package provides these texts in a one-row-per-line format, where a line in this context is analogous to a literal printed line in a physical book. Let’s start with that, and also use <code><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate()</a></code> to annotate a <code>linenumber</code> quantity to keep track of lines in the original format and a <code>chapter</code> (using a regex) to find where all the chapters are.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr">janeaustenr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
+
+<span class="va">original_books</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">book</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>linenumber <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/ranking.html">row_number</a></span><span class="op">(</span><span class="op">)</span>,
+         chapter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html">cumsum</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">text</span>, 
+                                     <span class="fu"><a href="https://stringr.tidyverse.org/reference/modifiers.html">regex</a></span><span class="op">(</span><span class="st">"^chapter [\\divxlc]"</span>,
+                                           ignore_case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="va">original_books</span>
+<span class="co">#&gt; # A tibble: 73,422 × 4</span>
+<span class="co">#&gt;    text                    book                linenumber chapter</span>
+<span class="co">#&gt;    &lt;chr&gt;                   &lt;fct&gt;                    &lt;int&gt;   &lt;int&gt;</span>
+<span class="co">#&gt;  1 "SENSE AND SENSIBILITY" Sense &amp; Sensibility          1       0</span>
+<span class="co">#&gt;  2 ""                      Sense &amp; Sensibility          2       0</span>
+<span class="co">#&gt;  3 "by Jane Austen"        Sense &amp; Sensibility          3       0</span>
+<span class="co">#&gt;  4 ""                      Sense &amp; Sensibility          4       0</span>
+<span class="co">#&gt;  5 "(1811)"                Sense &amp; Sensibility          5       0</span>
+<span class="co">#&gt;  6 ""                      Sense &amp; Sensibility          6       0</span>
+<span class="co">#&gt;  7 ""                      Sense &amp; Sensibility          7       0</span>
+<span class="co">#&gt;  8 ""                      Sense &amp; Sensibility          8       0</span>
+<span class="co">#&gt;  9 ""                      Sense &amp; Sensibility          9       0</span>
+<span class="co">#&gt; 10 "CHAPTER 1"             Sense &amp; Sensibility         10       1</span>
+<span class="co">#&gt; # … with 73,412 more rows</span></code></pre></div>
+<p>To work with this as a tidy dataset, we need to restructure it in the <strong>one-token-per-row</strong> format, which as we saw earlier is done with the <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> function.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+<span class="va">tidy_books</span> <span class="op">&lt;-</span> <span class="va">original_books</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span>
+
+<span class="va">tidy_books</span>
+<span class="co">#&gt; # A tibble: 725,055 × 4</span>
+<span class="co">#&gt;    book                linenumber chapter word       </span>
+<span class="co">#&gt;    &lt;fct&gt;                    &lt;int&gt;   &lt;int&gt; &lt;chr&gt;      </span>
+<span class="co">#&gt;  1 Sense &amp; Sensibility          1       0 sense      </span>
+<span class="co">#&gt;  2 Sense &amp; Sensibility          1       0 and        </span>
+<span class="co">#&gt;  3 Sense &amp; Sensibility          1       0 sensibility</span>
+<span class="co">#&gt;  4 Sense &amp; Sensibility          3       0 by         </span>
+<span class="co">#&gt;  5 Sense &amp; Sensibility          3       0 jane       </span>
+<span class="co">#&gt;  6 Sense &amp; Sensibility          3       0 austen     </span>
+<span class="co">#&gt;  7 Sense &amp; Sensibility          5       0 1811       </span>
+<span class="co">#&gt;  8 Sense &amp; Sensibility         10       1 chapter    </span>
+<span class="co">#&gt;  9 Sense &amp; Sensibility         10       1 1          </span>
+<span class="co">#&gt; 10 Sense &amp; Sensibility         13       1 the        </span>
+<span class="co">#&gt; # … with 725,045 more rows</span></code></pre></div>
+<p>This function uses the <a href="https://github.com/ropensci/tokenizers">tokenizers</a> package to separate each line of text in the original data frame into tokens. The default tokenizing is for words, but other options include characters, n-grams, sentences, lines, paragraphs, or separation around a regex pattern.</p>
+<p>Now that the data is in one-word-per-row format, we can manipulate it with tidy tools like dplyr. Often in text analysis, we will want to remove stop words; stop words are words that are not useful for an analysis, typically extremely common words such as “the”, “of”, “to”, and so forth in English. We can remove stop words (kept in the tidytext dataset <code>stop_words</code>) with an <code><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join()</a></code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span>
+
+<span class="va">tidy_books</span> <span class="op">&lt;-</span> <span class="va">tidy_books</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span></code></pre></div>
+<p>The <code>stop_words</code> dataset in the tidytext package contains stop words from three lexicons. We can use them all together, as we have here, or <code><a href="https://dplyr.tidyverse.org/reference/filter.html">filter()</a></code> to only use one set of stop words if that is more appropriate for a certain analysis.</p>
+<p>We can also use dplyr’s <code><a href="https://dplyr.tidyverse.org/reference/count.html">count()</a></code> to find the most common words in all the books as a whole.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_books</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> 
+<span class="co">#&gt; # A tibble: 13,914 × 2</span>
+<span class="co">#&gt;    word       n</span>
+<span class="co">#&gt;    &lt;chr&gt;  &lt;int&gt;</span>
+<span class="co">#&gt;  1 miss    1855</span>
+<span class="co">#&gt;  2 time    1337</span>
+<span class="co">#&gt;  3 fanny    862</span>
+<span class="co">#&gt;  4 dear     822</span>
+<span class="co">#&gt;  5 lady     817</span>
+<span class="co">#&gt;  6 sir      806</span>
+<span class="co">#&gt;  7 day      797</span>
+<span class="co">#&gt;  8 emma     787</span>
+<span class="co">#&gt;  9 sister   727</span>
+<span class="co">#&gt; 10 house    699</span>
+<span class="co">#&gt; # … with 13,904 more rows</span></code></pre></div>
+<p>Because we’ve been using tidy tools, our word counts are stored in a tidy data frame. This allows us to pipe this directly to the ggplot2 package, for example to create a visualization of the most common words (Figure <a href="tidytext.html#fig:plotcount">1.2</a>).</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+
+<span class="va">tidy_books</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;</span> <span class="fl">600</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">word</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotcount"></span>
+<img src="01-tidy-text_files/figure-html/plotcount-1.png" alt="The most common words in Jane Austen's novels" width="90%"><p class="caption">
+Figure 1.2: The most common words in Jane Austen’s novels
+</p>
+</div>
+<p>Note that the <code><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books()</a></code> function started us with exactly the text we wanted to analyze, but in other cases we may need to perform cleaning of text data, such as removing copyright headers or formatting. You’ll see examples of this kind of pre-processing in the case study chapters, particularly Chapter <a href="usenet.html#pre-processing-text">9.1.1</a>.</p>
+</div>
+<div id="the-gutenbergr-package" class="section level2">
+<h2>
+<span class="header-section-number">1.4</span> The gutenbergr package<a class="anchor" aria-label="anchor" href="#the-gutenbergr-package"><i class="fas fa-link"></i></a>
+</h2>
+<p>Now that we’ve used the janeaustenr package to explore tidying text, let’s introduce the <a href="https://github.com/ropensci/gutenbergr">gutenbergr</a> package <span class="citation">(Robinson <a href="references.html#ref-R-gutenbergr" role="doc-biblioref">2016</a>)</span>. The gutenbergr package provides access to the public domain works from the <a href="https://www.gutenberg.org/">Project Gutenberg</a> collection. The package includes tools both for downloading books (stripping out the unhelpful header/footer information), and a complete dataset of Project Gutenberg metadata that can be used to find works of interest. In this book, we will mostly use the function <code><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download()</a></code> that downloads one or more works from Project Gutenberg by ID, but you can also use other functions to explore metadata, pair Gutenberg ID with title, author, language, etc., or gather information about authors.</p>
+<div class="rmdtip">
+<p>
+To learn more about gutenbergr, check out the <a href="https://docs.ropensci.org/gutenbergr/">package’s documentation at rOpenSci</a>, where it is one of rOpenSci’s packages for data access.
+</p>
+</div>
+</div>
+<div id="word-frequencies" class="section level2">
+<h2>
+<span class="header-section-number">1.5</span> Word frequencies<a class="anchor" aria-label="anchor" href="#word-frequencies"><i class="fas fa-link"></i></a>
+</h2>
+<p>A common task in text mining is to look at word frequencies, just like we have done above for Jane Austen’s novels, and to compare frequencies across different texts. We can do this intuitively and smoothly using tidy data principles. We already have Jane Austen’s works; let’s get two more sets of texts to compare to. First, let’s look at some science fiction and fantasy novels by H.G. Wells, who lived in the late 19th and early 20th centuries. Let’s get <a href="https://www.gutenberg.org/ebooks/35"><em>The Time Machine</em></a>, <a href="https://www.gutenberg.org/ebooks/36"><em>The War of the Worlds</em></a>, <a href="https://www.gutenberg.org/ebooks/5230"><em>The Invisible Man</em></a>, and <a href="https://www.gutenberg.org/ebooks/159"><em>The Island of Doctor Moreau</em></a>. We can access these works using <code><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download()</a></code> and the Project Gutenberg ID numbers for each novel.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/gutenbergr/">gutenbergr</a></span><span class="op">)</span>
+
+<span class="va">hgwells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">35</span>, <span class="fl">36</span>, <span class="fl">5230</span>, <span class="fl">159</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_hgwells</span> <span class="op">&lt;-</span> <span class="va">hgwells</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span></code></pre></div>
+<p>Just for kicks, what are the most common words in these novels of H.G. Wells?</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_hgwells</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 11,769 × 2</span>
+<span class="co">#&gt;    word       n</span>
+<span class="co">#&gt;    &lt;chr&gt;  &lt;int&gt;</span>
+<span class="co">#&gt;  1 time     454</span>
+<span class="co">#&gt;  2 people   302</span>
+<span class="co">#&gt;  3 door     260</span>
+<span class="co">#&gt;  4 heard    249</span>
+<span class="co">#&gt;  5 black    232</span>
+<span class="co">#&gt;  6 stood    229</span>
+<span class="co">#&gt;  7 white    222</span>
+<span class="co">#&gt;  8 hand     218</span>
+<span class="co">#&gt;  9 kemp     213</span>
+<span class="co">#&gt; 10 eyes     210</span>
+<span class="co">#&gt; # … with 11,759 more rows</span></code></pre></div>
+<p>Now let’s get some well-known works of the Brontë sisters, whose lives overlapped with Jane Austen’s somewhat but who wrote in a rather different style. Let’s get <a href="https://www.gutenberg.org/ebooks/1260"><em>Jane Eyre</em></a>, <a href="https://www.gutenberg.org/ebooks/768"><em>Wuthering Heights</em></a>, <a href="https://www.gutenberg.org/ebooks/969"><em>The Tenant of Wildfell Hall</em></a>, <a href="https://www.gutenberg.org/ebooks/9182"><em>Villette</em></a>, and <a href="https://www.gutenberg.org/ebooks/767"><em>Agnes Grey</em></a>. We will again use the Project Gutenberg ID numbers for each novel and access the texts using <code><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download()</a></code>.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bronte</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1260</span>, <span class="fl">768</span>, <span class="fl">969</span>, <span class="fl">9182</span>, <span class="fl">767</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_bronte</span> <span class="op">&lt;-</span> <span class="va">bronte</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span><span class="op">)</span></code></pre></div>
+<p>What are the most common words in these novels of the Brontë sisters?</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">tidy_bronte</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 23,051 × 2</span>
+<span class="co">#&gt;    word       n</span>
+<span class="co">#&gt;    &lt;chr&gt;  &lt;int&gt;</span>
+<span class="co">#&gt;  1 time    1065</span>
+<span class="co">#&gt;  2 miss     855</span>
+<span class="co">#&gt;  3 day      827</span>
+<span class="co">#&gt;  4 hand     768</span>
+<span class="co">#&gt;  5 eyes     713</span>
+<span class="co">#&gt;  6 night    647</span>
+<span class="co">#&gt;  7 heart    638</span>
+<span class="co">#&gt;  8 looked   602</span>
+<span class="co">#&gt;  9 door     592</span>
+<span class="co">#&gt; 10 half     586</span>
+<span class="co">#&gt; # … with 23,041 more rows</span></code></pre></div>
+<p>Interesting that “time”, “eyes”, and “hand” are in the top 10 for both H.G. Wells and the Brontë sisters.</p>
+<p>Now, let’s calculate the frequency for each word for the works of Jane Austen, the Brontë sisters, and H.G. Wells by binding the data frames together. We can use <code><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html">pivot_wider()</a></code> and <code><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer()</a></code> from tidyr to reshape our dataframe so that it is just what we need for plotting and comparing the three sets of novels.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
+
+<span class="va">frequency</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">tidy_bronte</span>, author <span class="op">=</span> <span class="st">"Brontë Sisters"</span><span class="op">)</span>,
+                       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">tidy_hgwells</span>, author <span class="op">=</span> <span class="st">"H.G. Wells"</span><span class="op">)</span>, 
+                       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="va">tidy_books</span>, author <span class="op">=</span> <span class="st">"Jane Austen"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract</a></span><span class="op">(</span><span class="va">word</span>, <span class="st">"[a-z']+"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">author</span>, <span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">author</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>proportion <span class="op">=</span> <span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">author</span>, values_from <span class="op">=</span> <span class="va">proportion</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span><span class="va">`Brontë Sisters`</span><span class="op">:</span><span class="va">`H.G. Wells`</span>,
+               names_to <span class="op">=</span> <span class="st">"author"</span>, values_to <span class="op">=</span> <span class="st">"proportion"</span><span class="op">)</span>
+
+<span class="va">frequency</span>
+<span class="co">#&gt; # A tibble: 57,820 × 4</span>
+<span class="co">#&gt;    word    `Jane Austen` author          proportion</span>
+<span class="co">#&gt;    &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;                &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 a          0.00000919 Brontë Sisters  0.0000319 </span>
+<span class="co">#&gt;  2 a          0.00000919 H.G. Wells      0.0000150 </span>
+<span class="co">#&gt;  3 a'most    NA          Brontë Sisters  0.0000159 </span>
+<span class="co">#&gt;  4 a'most    NA          H.G. Wells     NA         </span>
+<span class="co">#&gt;  5 aback     NA          Brontë Sisters  0.00000398</span>
+<span class="co">#&gt;  6 aback     NA          H.G. Wells      0.0000150 </span>
+<span class="co">#&gt;  7 abaht     NA          Brontë Sisters  0.00000398</span>
+<span class="co">#&gt;  8 abaht     NA          H.G. Wells     NA         </span>
+<span class="co">#&gt;  9 abandon   NA          Brontë Sisters  0.0000319 </span>
+<span class="co">#&gt; 10 abandon   NA          H.G. Wells      0.0000150 </span>
+<span class="co">#&gt; # … with 57,810 more rows</span></code></pre></div>
+<p>We use <code><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract()</a></code> here because the UTF-8 encoded texts from Project Gutenberg have some examples of words with underscores around them to indicate emphasis (like italics). The tokenizer treated these as words, but we don’t want to count “_any_” separately from “any” as we saw in our initial data exploration before choosing to use <code><a href="https://stringr.tidyverse.org/reference/str_extract.html">str_extract()</a></code>.</p>
+<p>Now let’s plot (Figure <a href="tidytext.html#fig:plotcompare">1.3</a>).</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://scales.r-lib.org">scales</a></span><span class="op">)</span>
+
+<span class="co"># expect a warning about rows with missing values being removed</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">frequency</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">proportion</span>, y <span class="op">=</span> <span class="va">`Jane Austen`</span>, 
+                      color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">`Jane Austen`</span> <span class="op">-</span> <span class="va">proportion</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html">geom_abline</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"gray40"</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_jitter.html">geom_jitter</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.1</span>, size <span class="op">=</span> <span class="fl">2.5</span>, width <span class="op">=</span> <span class="fl">0.3</span>, height <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">word</span><span class="op">)</span>, check_overlap <span class="op">=</span> <span class="cn">TRUE</span>, vjust <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_x_log10</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu"><a href="https://scales.r-lib.org/reference/label_percent.html">percent_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_log10</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu"><a href="https://scales.r-lib.org/reference/label_percent.html">percent_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html">scale_color_gradient</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.001</span><span class="op">)</span>, 
+                       low <span class="op">=</span> <span class="st">"darkslategray4"</span>, high <span class="op">=</span> <span class="st">"gray75"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">author</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>legend.position<span class="op">=</span><span class="st">"none"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Jane Austen"</span>, x <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:plotcompare"></span>
+<img src="01-tidy-text_files/figure-html/plotcompare-1.png" alt="Comparing the word frequencies of Jane Austen, the Brontë sisters, and H.G. Wells" width="90%"><p class="caption">
+Figure 1.3: Comparing the word frequencies of Jane Austen, the Brontë sisters, and H.G. Wells
+</p>
+</div>
+<p>Words that are close to the line in these plots have similar frequencies in both sets of texts, for example, in both Austen and Brontë texts (“miss”, “time”, “day” at the upper frequency end) or in both Austen and Wells texts (“time”, “day”, “brother” at the high frequency end). Words that are far from the line are words that are found more in one set of texts than another. For example, in the Austen-Brontë panel, words like “elizabeth”, “emma”, and “fanny” (all proper nouns) are found in Austen’s texts but not much in the Brontë texts, while words like “arthur” and “dog” are found in the Brontë texts but not the Austen texts. In comparing H.G. Wells with Jane Austen, Wells uses words like “beast”, “guns”, “feet”, and “black” that Austen does not, while Austen uses words like “family”, “friend”, “letter”, and “dear” that Wells does not.</p>
+<p>Overall, notice in Figure <a href="tidytext.html#fig:plotcompare">1.3</a> that the words in the Austen-Brontë panel are closer to the zero-slope line than in the Austen-Wells panel. Also notice that the words extend to lower frequencies in the Austen-Brontë panel; there is empty space in the Austen-Wells panel at low frequency. These characteristics indicate that Austen and the Brontë sisters use more similar words than Austen and H.G. Wells. Also, we see that not all the words are found in all three sets of texts and there are fewer data points in the panel for Austen and H.G. Wells.</p>
+<p>Let’s quantify how similar and different these sets of word frequencies are using a correlation test. How correlated are the word frequencies between Austen and the Brontë sisters, and between Austen and Wells?</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html">cor.test</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">frequency</span><span class="op">[</span><span class="va">frequency</span><span class="op">$</span><span class="va">author</span> <span class="op">==</span> <span class="st">"Brontë Sisters"</span>,<span class="op">]</span>,
+         <span class="op">~</span> <span class="va">proportion</span> <span class="op">+</span> <span class="va">`Jane Austen`</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;  Pearson's product-moment correlation</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; data:  proportion and Jane Austen</span>
+<span class="co">#&gt; t = 119.64, df = 10404, p-value &lt; 2.2e-16</span>
+<span class="co">#&gt; alternative hypothesis: true correlation is not equal to 0</span>
+<span class="co">#&gt; 95 percent confidence interval:</span>
+<span class="co">#&gt;  0.7527837 0.7689611</span>
+<span class="co">#&gt; sample estimates:</span>
+<span class="co">#&gt;       cor </span>
+<span class="co">#&gt; 0.7609907</span>
+<span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html">cor.test</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">frequency</span><span class="op">[</span><span class="va">frequency</span><span class="op">$</span><span class="va">author</span> <span class="op">==</span> <span class="st">"H.G. Wells"</span>,<span class="op">]</span>, 
+         <span class="op">~</span> <span class="va">proportion</span> <span class="op">+</span> <span class="va">`Jane Austen`</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;  Pearson's product-moment correlation</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; data:  proportion and Jane Austen</span>
+<span class="co">#&gt; t = 36.441, df = 6053, p-value &lt; 2.2e-16</span>
+<span class="co">#&gt; alternative hypothesis: true correlation is not equal to 0</span>
+<span class="co">#&gt; 95 percent confidence interval:</span>
+<span class="co">#&gt;  0.4032820 0.4446006</span>
+<span class="co">#&gt; sample estimates:</span>
+<span class="co">#&gt;      cor </span>
+<span class="co">#&gt; 0.424162</span></code></pre></div>
+<p>Just as we saw in the plots, the word frequencies are more correlated between the Austen and Brontë novels than between Austen and H.G. Wells.</p>
+</div>
+<div id="summary" class="section level2">
+<h2>
+<span class="header-section-number">1.6</span> Summary<a class="anchor" aria-label="anchor" href="#summary"><i class="fas fa-link"></i></a>
+</h2>
+<p>In this chapter, we explored what we mean by tidy data when it comes to text, and how tidy data principles can be applied to natural language processing. When text is organized in a format with one token per row, tasks like removing stop words or calculating word frequencies are natural applications of familiar operations within the tidy tool ecosystem. The one-token-per-row framework can be extended from single words to n-grams and other meaningful units of text, as well as to many other analysis priorities that we will consider in this book.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="preface.html">Preface</a></div>
+<div class="next"><a href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#tidytext"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="nav-link" href="#contrasting-tidy-text-with-other-data-structures"><span class="header-section-number">1.1</span> Contrasting tidy text with other data structures</a></li>
+<li><a class="nav-link" href="#the-unnest_tokens-function"><span class="header-section-number">1.2</span> The unnest_tokens function</a></li>
+<li><a class="nav-link" href="#tidyausten"><span class="header-section-number">1.3</span> Tidying the works of Jane Austen</a></li>
+<li><a class="nav-link" href="#the-gutenbergr-package"><span class="header-section-number">1.4</span> The gutenbergr package</a></li>
+<li><a class="nav-link" href="#word-frequencies"><span class="header-section-number">1.5</span> Word frequencies</a></li>
+<li><a class="nav-link" href="#summary"><span class="header-section-number">1.6</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dgrtwo/tidy-text-mining/blob/master/01-tidy-text.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dgrtwo/tidy-text-mining/edit/master/01-tidy-text.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Text Mining with R</strong>: A Tidy Approach" was written by Julia Silge and David Robinson. It was last built on 2022-02-07.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

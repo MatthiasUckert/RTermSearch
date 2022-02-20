@@ -32,7 +32,7 @@ Get Context
 }
 \examples{
 termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-document       <- prep_document(table_document, string_standardization)
+document       <- prep_document(table_document_short, string_standardization)
 
 tab_pos_short <- position_count(
   termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL

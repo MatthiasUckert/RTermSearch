@@ -31,7 +31,7 @@ Get Position of Terms
 \examples{
 termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
 termlist_long  <- prep_termlist(table_termlist_long, string_standardization)
-document       <- prep_document(table_document, string_standardization)
+document       <- prep_document(table_document_short, string_standardization)
 
 tab_pos_short <- position_count(
   termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL

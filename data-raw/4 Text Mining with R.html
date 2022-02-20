@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>4 Relationships between words: n-grams and correlations | Text Mining with R</title>
+<meta name="author" content="Julia Silge and David Robinson">
+<meta name="description" content="So far we’ve considered words as individual units, and considered their relationships to sentiments or to documents. However, many interesting text analyses are based on the relationships between...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="4 Relationships between words: n-grams and correlations | Text Mining with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://www.tidytextmining.com/ngrams.html">
+<meta property="og:image" content="https://www.tidytextmining.com/images/cover.png">
+<meta property="og:description" content="So far we’ve considered words as individual units, and considered their relationships to sentiments or to documents. However, many interesting text analyses are based on the relationships between...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="4 Relationships between words: n-grams and correlations | Text Mining with R">
+<meta name="twitter:description" content="So far we’ve considered words as individual units, and considered their relationships to sentiments or to documents. However, many interesting text analyses are based on the relationships between...">
+<meta name="twitter:image" content="https://www.tidytextmining.com/images/cover.png">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-68765210-2', 'auto');
+    ga('send', 'pageview');
+  
+  </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="A Tidy Approach">Text Mining with R</a>:
+        <small class="text-muted">A Tidy Approach</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome to Text Mining with R</a></li>
+<li><a class="" href="preface.html">Preface</a></li>
+<li><a class="" href="tidytext.html"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="" href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></li>
+<li><a class="" href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="active" href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li><a class="" href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li><a class="" href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></li>
+<li><a class="" href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></li>
+<li><a class="" href="nasa.html"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li><a class="" href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">10</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dgrtwo/tidy-text-mining">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="ngrams" class="section level1">
+<h1>
+<span class="header-section-number">4</span> Relationships between words: n-grams and correlations<a class="anchor" aria-label="anchor" href="#ngrams"><i class="fas fa-link"></i></a>
+</h1>
+<p>So far we’ve considered words as individual units, and considered their relationships to sentiments or to documents. However, many interesting text analyses are based on the relationships between words, whether examining which words tend to follow others immediately, or that tend to co-occur within the same documents.</p>
+<p>In this chapter, we’ll explore some of the methods tidytext offers for calculating and visualizing relationships between words in your text dataset. This includes the <code>token = "ngrams"</code> argument, which tokenizes by pairs of adjacent words rather than by individual ones. We’ll also introduce two new packages: <a href="https://github.com/thomasp85/ggraph">ggraph</a>, which extends ggplot2 to construct network plots, and <a href="https://github.com/dgrtwo/widyr">widyr</a>, which calculates pairwise correlations and distances within a tidy data frame. Together these expand our toolbox for exploring text within the tidy data framework.</p>
+<div id="tokenizing-by-n-gram" class="section level2">
+<h2>
+<span class="header-section-number">4.1</span> Tokenizing by n-gram<a class="anchor" aria-label="anchor" href="#tokenizing-by-n-gram"><i class="fas fa-link"></i></a>
+</h2>
+<p>We’ve been using the <code>unnest_tokens</code> function to tokenize by word, or sometimes by sentence, which is useful for the kinds of sentiment and frequency analyses we’ve been doing so far. But we can also use the function to tokenize into consecutive sequences of words, called <strong>n-grams</strong>. By seeing how often word X is followed by word Y, we can then build a model of the relationships between them.</p>
+<p>We do this by adding the <code>token = "ngrams"</code> option to <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code>, and setting <code>n</code> to the number of words we wish to capture in each n-gram. When we set <code>n</code> to 2, we are examining pairs of two consecutive words, often called “bigrams”:</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr">janeaustenr</a></span><span class="op">)</span>
+
+<span class="va">austen_bigrams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="va">text</span>, token <span class="op">=</span> <span class="st">"ngrams"</span>, n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+
+<span class="va">austen_bigrams</span>
+<span class="co">#&gt; # A tibble: 675,025 × 2</span>
+<span class="co">#&gt;    book                bigram         </span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;chr&gt;          </span>
+<span class="co">#&gt;  1 Sense &amp; Sensibility sense and      </span>
+<span class="co">#&gt;  2 Sense &amp; Sensibility and sensibility</span>
+<span class="co">#&gt;  3 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt;  4 Sense &amp; Sensibility by jane        </span>
+<span class="co">#&gt;  5 Sense &amp; Sensibility jane austen    </span>
+<span class="co">#&gt;  6 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt;  7 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt;  8 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt;  9 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt; 10 Sense &amp; Sensibility &lt;NA&gt;           </span>
+<span class="co">#&gt; # … with 675,015 more rows</span></code></pre></div>
+<p>This data structure is still a variation of the tidy text format. It is structured as one-token-per-row (with extra metadata, such as <code>book</code>, still preserved), but each token now represents a bigram.</p>
+<div class="rmdnote">
+<p>
+Notice that these bigrams overlap: “sense and” is one token, while “and sensibility” is another.
+</p>
+</div>
+<div id="counting-and-filtering-n-grams" class="section level3">
+<h3>
+<span class="header-section-number">4.1.1</span> Counting and filtering n-grams<a class="anchor" aria-label="anchor" href="#counting-and-filtering-n-grams"><i class="fas fa-link"></i></a>
+</h3>
+<p>Our usual tidy tools apply equally well to n-gram analysis. We can examine the most common bigrams using dplyr’s <code><a href="https://dplyr.tidyverse.org/reference/count.html">count()</a></code>:</p>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">austen_bigrams</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">bigram</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 193,210 × 2</span>
+<span class="co">#&gt;    bigram      n</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;int&gt;</span>
+<span class="co">#&gt;  1 &lt;NA&gt;    12242</span>
+<span class="co">#&gt;  2 of the   2853</span>
+<span class="co">#&gt;  3 to be    2670</span>
+<span class="co">#&gt;  4 in the   2221</span>
+<span class="co">#&gt;  5 it was   1691</span>
+<span class="co">#&gt;  6 i am     1485</span>
+<span class="co">#&gt;  7 she had  1405</span>
+<span class="co">#&gt;  8 of her   1363</span>
+<span class="co">#&gt;  9 to the   1315</span>
+<span class="co">#&gt; 10 she was  1309</span>
+<span class="co">#&gt; # … with 193,200 more rows</span></code></pre></div>
+<p>As one might expect, a lot of the most common bigrams are pairs of common (uninteresting) words, such as <code>of the</code> and <code>to be</code>: what we call “stop-words” (see Chapter <a href="tidytext.html#tidytext">1</a>). This is a useful time to use tidyr’s <code><a href="https://tidyr.tidyverse.org/reference/separate.html">separate()</a></code>, which splits a column into multiple based on a delimiter. This lets us separate it into two columns, “word1” and “word2”, at which point we can remove cases where either is a stop-word.</p>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
+
+<span class="va">bigrams_separated</span> <span class="op">&lt;-</span> <span class="va">austen_bigrams</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html">separate</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"word1"</span>, <span class="st">"word2"</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">" "</span><span class="op">)</span>
+
+<span class="va">bigrams_filtered</span> <span class="op">&lt;-</span> <span class="va">bigrams_separated</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">word1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">word2</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span><span class="op">)</span>
+
+<span class="co"># new bigram counts:</span>
+<span class="va">bigram_counts</span> <span class="op">&lt;-</span> <span class="va">bigrams_filtered</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word1</span>, <span class="va">word2</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">bigram_counts</span>
+<span class="co">#&gt; # A tibble: 28,975 × 3</span>
+<span class="co">#&gt;    word1   word2         n</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt;</span>
+<span class="co">#&gt;  1 &lt;NA&gt;    &lt;NA&gt;      12242</span>
+<span class="co">#&gt;  2 sir     thomas      266</span>
+<span class="co">#&gt;  3 miss    crawford    196</span>
+<span class="co">#&gt;  4 captain wentworth   143</span>
+<span class="co">#&gt;  5 miss    woodhouse   143</span>
+<span class="co">#&gt;  6 frank   churchill   114</span>
+<span class="co">#&gt;  7 lady    russell     110</span>
+<span class="co">#&gt;  8 sir     walter      108</span>
+<span class="co">#&gt;  9 lady    bertram     101</span>
+<span class="co">#&gt; 10 miss    fairfax      98</span>
+<span class="co">#&gt; # … with 28,965 more rows</span></code></pre></div>
+<p>We can see that names (whether first and last or with a salutation) are the most common pairs in Jane Austen books.</p>
+<p>In other analyses, we may want to work with the recombined words. tidyr’s <code><a href="https://tidyr.tidyverse.org/reference/unite.html">unite()</a></code> function is the inverse of <code><a href="https://tidyr.tidyverse.org/reference/separate.html">separate()</a></code>, and lets us recombine the columns into one. Thus, “separate/filter/count/unite” let us find the most common bigrams not containing stop-words.</p>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bigrams_united</span> <span class="op">&lt;-</span> <span class="va">bigrams_filtered</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/unite.html">unite</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="va">word1</span>, <span class="va">word2</span>, sep <span class="op">=</span> <span class="st">" "</span><span class="op">)</span>
+
+<span class="va">bigrams_united</span>
+<span class="co">#&gt; # A tibble: 51,155 × 2</span>
+<span class="co">#&gt;    book                bigram     </span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;chr&gt;      </span>
+<span class="co">#&gt;  1 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  2 Sense &amp; Sensibility jane austen</span>
+<span class="co">#&gt;  3 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  4 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  5 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  6 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  7 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  8 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt;  9 Sense &amp; Sensibility chapter 1  </span>
+<span class="co">#&gt; 10 Sense &amp; Sensibility NA NA      </span>
+<span class="co">#&gt; # … with 51,145 more rows</span></code></pre></div>
+<p>In other analyses you may be interested in the most common trigrams, which are consecutive sequences of 3 words. We can find this by setting <code>n = 3</code>:</p>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">trigram</span>, <span class="va">text</span>, token <span class="op">=</span> <span class="st">"ngrams"</span>, n <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html">separate</a></span><span class="op">(</span><span class="va">trigram</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"word1"</span>, <span class="st">"word2"</span>, <span class="st">"word3"</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">" "</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">word1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span>,
+         <span class="op">!</span><span class="va">word2</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span>,
+         <span class="op">!</span><span class="va">word3</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word1</span>, <span class="va">word2</span>, <span class="va">word3</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 6,141 × 4</span>
+<span class="co">#&gt;    word1     word2     word3         n</span>
+<span class="co">#&gt;    &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;     &lt;int&gt;</span>
+<span class="co">#&gt;  1 &lt;NA&gt;      &lt;NA&gt;      &lt;NA&gt;      13260</span>
+<span class="co">#&gt;  2 dear      miss      woodhouse    20</span>
+<span class="co">#&gt;  3 miss      de        bourgh       17</span>
+<span class="co">#&gt;  4 lady      catherine de           11</span>
+<span class="co">#&gt;  5 poor      miss      taylor       11</span>
+<span class="co">#&gt;  6 sir       walter    elliot       10</span>
+<span class="co">#&gt;  7 catherine de        bourgh        9</span>
+<span class="co">#&gt;  8 dear      sir       thomas        8</span>
+<span class="co">#&gt;  9 replied   miss      crawford      7</span>
+<span class="co">#&gt; 10 sir       william   lucas         7</span>
+<span class="co">#&gt; # … with 6,131 more rows</span></code></pre></div>
+</div>
+<div id="analyzing-bigrams" class="section level3">
+<h3>
+<span class="header-section-number">4.1.2</span> Analyzing bigrams<a class="anchor" aria-label="anchor" href="#analyzing-bigrams"><i class="fas fa-link"></i></a>
+</h3>
+<p>This one-bigram-per-row format is helpful for exploratory analyses of the text. As a simple example, we might be interested in the most common “streets” mentioned in each book:</p>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bigrams_filtered</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">word2</span> <span class="op">==</span> <span class="st">"street"</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">book</span>, <span class="va">word1</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 33 × 3</span>
+<span class="co">#&gt;    book                word1           n</span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;chr&gt;       &lt;int&gt;</span>
+<span class="co">#&gt;  1 Sense &amp; Sensibility harley         16</span>
+<span class="co">#&gt;  2 Sense &amp; Sensibility berkeley       15</span>
+<span class="co">#&gt;  3 Northanger Abbey    milsom         10</span>
+<span class="co">#&gt;  4 Northanger Abbey    pulteney       10</span>
+<span class="co">#&gt;  5 Mansfield Park      wimpole         9</span>
+<span class="co">#&gt;  6 Pride &amp; Prejudice   gracechurch     8</span>
+<span class="co">#&gt;  7 Persuasion          milsom          5</span>
+<span class="co">#&gt;  8 Sense &amp; Sensibility bond            4</span>
+<span class="co">#&gt;  9 Sense &amp; Sensibility conduit         4</span>
+<span class="co">#&gt; 10 Persuasion          rivers          4</span>
+<span class="co">#&gt; # … with 23 more rows</span></code></pre></div>
+<p>A bigram can also be treated as a term in a document in the same way that we treated individual words. For example, we can look at the tf-idf (Chapter <a href="tfidf.html#tfidf">3</a>) of bigrams across Austen novels. These tf-idf values can be visualized within each book, just as we did for words (Figure <a href="ngrams.html#fig:bigramtfidf">4.1</a>).</p>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bigram_tf_idf</span> <span class="op">&lt;-</span> <span class="va">bigrams_united</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">book</span>, <span class="va">bigram</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="va">book</span>, <span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">bigram_tf_idf</span>
+<span class="co">#&gt; # A tibble: 31,397 × 6</span>
+<span class="co">#&gt;    book                bigram                n     tf   idf tf_idf</span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;chr&gt;             &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 Mansfield Park      sir thomas          266 0.0244  1.79 0.0438</span>
+<span class="co">#&gt;  2 Persuasion          captain wentworth   143 0.0232  1.79 0.0416</span>
+<span class="co">#&gt;  3 Mansfield Park      miss crawford       196 0.0180  1.79 0.0322</span>
+<span class="co">#&gt;  4 Persuasion          lady russell        110 0.0179  1.79 0.0320</span>
+<span class="co">#&gt;  5 Persuasion          sir walter          108 0.0175  1.79 0.0314</span>
+<span class="co">#&gt;  6 Emma                miss woodhouse      143 0.0129  1.79 0.0231</span>
+<span class="co">#&gt;  7 Northanger Abbey    miss tilney          74 0.0128  1.79 0.0229</span>
+<span class="co">#&gt;  8 Sense &amp; Sensibility colonel brandon      96 0.0115  1.79 0.0205</span>
+<span class="co">#&gt;  9 Sense &amp; Sensibility sir john             94 0.0112  1.79 0.0201</span>
+<span class="co">#&gt; 10 Emma                frank churchill     114 0.0103  1.79 0.0184</span>
+<span class="co">#&gt; # … with 31,387 more rows</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:bigramtfidf"></span>
+<img src="04-word-combinations_files/figure-html/bigramtfidf-1.png" alt="Bigrams with the highest tf-idf from each Jane Austen novel" width="90%"><p class="caption">
+Figure 4.1: Bigrams with the highest tf-idf from each Jane Austen novel
+</p>
+</div>
+<p>Much as we discovered in Chapter <a href="tfidf.html#tfidf">3</a>, the units that distinguish each Austen book are almost exclusively names. We also notice some pairings of a common verb and a name, such as “replied elizabeth” in Pride &amp; Prejudice, or “cried emma” in Emma.</p>
+<p>There are advantages and disadvantages to examining the tf-idf of bigrams rather than individual words. Pairs of consecutive words might capture structure that isn’t present when one is just counting single words, and may provide context that makes tokens more understandable (for example, “pulteney street”, in Northanger Abbey, is more informative than “pulteney”). However, the per-bigram counts are also <em>sparser</em>: a typical two-word pair is rarer than either of its component words. Thus, bigrams can be especially useful when you have a very large text dataset.</p>
+</div>
+<div id="using-bigrams-to-provide-context-in-sentiment-analysis" class="section level3">
+<h3>
+<span class="header-section-number">4.1.3</span> Using bigrams to provide context in sentiment analysis<a class="anchor" aria-label="anchor" href="#using-bigrams-to-provide-context-in-sentiment-analysis"><i class="fas fa-link"></i></a>
+</h3>
+<p>Our sentiment analysis approach in Chapter <a href="sentiment.html#sentiment">2</a> simply counted the appearance of positive or negative words, according to a reference lexicon. One of the problems with this approach is that a word’s context can matter nearly as much as its presence. For example, the words “happy” and “like” will be counted as positive, even in a sentence like “I’m not <strong>happy</strong> and I don’t <strong>like</strong> it!”</p>
+<p>Now that we have the data organized into bigrams, it’s easy to tell how often words are preceded by a word like “not”:</p>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">bigrams_separated</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">word1</span> <span class="op">==</span> <span class="st">"not"</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word1</span>, <span class="va">word2</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 1,178 × 3</span>
+<span class="co">#&gt;    word1 word2     n</span>
+<span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt; &lt;int&gt;</span>
+<span class="co">#&gt;  1 not   be      580</span>
+<span class="co">#&gt;  2 not   to      335</span>
+<span class="co">#&gt;  3 not   have    307</span>
+<span class="co">#&gt;  4 not   know    237</span>
+<span class="co">#&gt;  5 not   a       184</span>
+<span class="co">#&gt;  6 not   think   162</span>
+<span class="co">#&gt;  7 not   been    151</span>
+<span class="co">#&gt;  8 not   the     135</span>
+<span class="co">#&gt;  9 not   at      126</span>
+<span class="co">#&gt; 10 not   in      110</span>
+<span class="co">#&gt; # … with 1,168 more rows</span></code></pre></div>
+<p>By performing sentiment analysis on the bigram data, we can examine how often sentiment-associated words are preceded by “not” or other negating words. We could use this to ignore or even reverse their contribution to the sentiment score.</p>
+<p>Let’s use the AFINN lexicon for sentiment analysis, which you may recall gives a numeric sentiment value for each word, with positive or negative numbers indicating the direction of the sentiment.</p>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">AFINN</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/get_sentiments.html">get_sentiments</a></span><span class="op">(</span><span class="st">"afinn"</span><span class="op">)</span>
+
+<span class="va">AFINN</span></code></pre></div>
+<pre><code>#&gt; # A tibble: 2,477 × 2
+#&gt;    word       value
+#&gt;    &lt;chr&gt;      &lt;dbl&gt;
+#&gt;  1 abandon       -2
+#&gt;  2 abandoned     -2
+#&gt;  3 abandons      -2
+#&gt;  4 abducted      -2
+#&gt;  5 abduction     -2
+#&gt;  6 abductions    -2
+#&gt;  7 abhor         -3
+#&gt;  8 abhorred      -3
+#&gt;  9 abhorrent     -3
+#&gt; 10 abhors        -3
+#&gt; # … with 2,467 more rows</code></pre>
+<p>We can then examine the most frequent words that were preceded by “not” and were associated with a sentiment.</p>
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">not_words</span> <span class="op">&lt;-</span> <span class="va">bigrams_separated</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">word1</span> <span class="op">==</span> <span class="st">"not"</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">AFINN</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>word2 <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word2</span>, <span class="va">value</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">not_words</span>
+<span class="co">#&gt; # A tibble: 229 × 3</span>
+<span class="co">#&gt;    word2   value     n</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;dbl&gt; &lt;int&gt;</span>
+<span class="co">#&gt;  1 like        2    95</span>
+<span class="co">#&gt;  2 help        2    77</span>
+<span class="co">#&gt;  3 want        1    41</span>
+<span class="co">#&gt;  4 wish        1    39</span>
+<span class="co">#&gt;  5 allow       1    30</span>
+<span class="co">#&gt;  6 care        2    21</span>
+<span class="co">#&gt;  7 sorry      -1    20</span>
+<span class="co">#&gt;  8 leave      -1    17</span>
+<span class="co">#&gt;  9 pretend    -1    17</span>
+<span class="co">#&gt; 10 worth       2    17</span>
+<span class="co">#&gt; # … with 219 more rows</span></code></pre></div>
+<p>For example, the most common sentiment-associated word to follow “not” was “like”, which would normally have a (positive) score of 2.</p>
+<p>It’s worth asking which words contributed the most in the “wrong” direction. To compute that, we can multiply their value by the number of times they appear (so that a word with a value of +3 occurring 10 times has as much impact as a word with a sentiment value of +1 occurring 30 times). We visualize the result with a bar plot (Figure <a href="ngrams.html#fig:notwordsplot">4.2</a>).</p>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+
+<span class="va">not_words</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>contribution <span class="op">=</span> <span class="va">n</span> <span class="op">*</span> <span class="va">value</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">contribution</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">20</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">word2</span>, <span class="va">contribution</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">value</span>, <span class="va">word2</span>, fill <span class="op">=</span> <span class="va">n</span> <span class="op">*</span> <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Sentiment value * number of occurrences"</span>,
+       y <span class="op">=</span> <span class="st">"Words preceded by \"not\""</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:notwordsplot"></span>
+<img src="04-word-combinations_files/figure-html/notwordsplot-1.png" alt="Words preceded by 'not' that had the greatest contribution to sentiment values, in either a positive or negative direction" width="90%"><p class="caption">
+Figure 4.2: Words preceded by ‘not’ that had the greatest contribution to sentiment values, in either a positive or negative direction
+</p>
+</div>
+<p>The bigrams “not like” and “not help” were overwhelmingly the largest causes of misidentification, making the text seem much more positive than it is. But we can see phrases like “not afraid” and “not fail” sometimes suggest text is more negative than it is.</p>
+<p>“Not” isn’t the only term that provides some context for the following word. We could pick four common words (or more) that negate the subsequent term, and use the same joining and counting approach to examine all of them at once.</p>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">negation_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"not"</span>, <span class="st">"no"</span>, <span class="st">"never"</span>, <span class="st">"without"</span><span class="op">)</span>
+
+<span class="va">negated_words</span> <span class="op">&lt;-</span> <span class="va">bigrams_separated</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">word1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">negation_words</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="va">AFINN</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>word2 <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word1</span>, <span class="va">word2</span>, <span class="va">value</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<p>We could then visualize what the most common words to follow each particular negation are (Figure <a href="ngrams.html#fig:negatedwords">4.3</a>). While “not like” and “not help” are still the two most common examples, we can also see pairings such as “no great” and “never loved.” We could combine this with the approaches in Chapter <a href="sentiment.html#sentiment">2</a> to reverse the AFINN values of each word that follows a negation. These are just a few examples of how finding consecutive words can give context to text mining methods.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:negatedwords"></span>
+<img src="04-word-combinations_files/figure-html/negatedwords-1.png" alt="Most common positive or negative words to follow negations such as 'never', 'no', 'not', and 'without'" width="90%"><p class="caption">
+Figure 4.3: Most common positive or negative words to follow negations such as ‘never’, ‘no’, ‘not’, and ‘without’
+</p>
+</div>
+</div>
+<div id="visualizing-a-network-of-bigrams-with-ggraph" class="section level3">
+<h3>
+<span class="header-section-number">4.1.4</span> Visualizing a network of bigrams with ggraph<a class="anchor" aria-label="anchor" href="#visualizing-a-network-of-bigrams-with-ggraph"><i class="fas fa-link"></i></a>
+</h3>
+<p>We may be interested in visualizing all of the relationships among words simultaneously, rather than just the top few at a time. As one common visualization, we can arrange the words into a network, or “graph.” Here we’ll be referring to a “graph” not in the sense of a visualization, but as a combination of connected nodes. A graph can be constructed from a tidy object since it has three variables:</p>
+<ul>
+<li>
+<strong>from</strong>: the node an edge is coming from</li>
+<li>
+<strong>to</strong>: the node an edge is going towards</li>
+<li>
+<strong>weight</strong>: A numeric value associated with each edge</li>
+</ul>
+<p>The <a href="http://igraph.org/">igraph</a> package has many powerful functions for manipulating and analyzing networks. One way to create an igraph object from tidy data is the <code><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame()</a></code> function, which takes a data frame of edges with columns for “from”, “to”, and edge attributes (in this case <code>n</code>):</p>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igraph.org">igraph</a></span><span class="op">)</span>
+
+<span class="co"># original counts</span>
+<span class="va">bigram_counts</span>
+<span class="co">#&gt; # A tibble: 28,975 × 3</span>
+<span class="co">#&gt;    word1   word2         n</span>
+<span class="co">#&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;int&gt;</span>
+<span class="co">#&gt;  1 &lt;NA&gt;    &lt;NA&gt;      12242</span>
+<span class="co">#&gt;  2 sir     thomas      266</span>
+<span class="co">#&gt;  3 miss    crawford    196</span>
+<span class="co">#&gt;  4 captain wentworth   143</span>
+<span class="co">#&gt;  5 miss    woodhouse   143</span>
+<span class="co">#&gt;  6 frank   churchill   114</span>
+<span class="co">#&gt;  7 lady    russell     110</span>
+<span class="co">#&gt;  8 sir     walter      108</span>
+<span class="co">#&gt;  9 lady    bertram     101</span>
+<span class="co">#&gt; 10 miss    fairfax      98</span>
+<span class="co">#&gt; # … with 28,965 more rows</span>
+
+<span class="co"># filter for only relatively common combinations</span>
+<span class="va">bigram_graph</span> <span class="op">&lt;-</span> <span class="va">bigram_counts</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;</span> <span class="fl">20</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/igraph/man/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="va">bigram_graph</span>
+<span class="co">#&gt; IGRAPH 8dcffee DN-- 86 71 -- </span>
+<span class="co">#&gt; + attr: name (v/c), n (e/n)</span>
+<span class="co">#&gt; + edges from 8dcffee (vertex names):</span>
+<span class="co">#&gt;  [1] NA      -&gt;NA         sir     -&gt;thomas     miss    -&gt;crawford  </span>
+<span class="co">#&gt;  [4] captain -&gt;wentworth  miss    -&gt;woodhouse  frank   -&gt;churchill </span>
+<span class="co">#&gt;  [7] lady    -&gt;russell    sir     -&gt;walter     lady    -&gt;bertram   </span>
+<span class="co">#&gt; [10] miss    -&gt;fairfax    colonel -&gt;brandon    sir     -&gt;john      </span>
+<span class="co">#&gt; [13] miss    -&gt;bates      jane    -&gt;fairfax    lady    -&gt;catherine </span>
+<span class="co">#&gt; [16] lady    -&gt;middleton  miss    -&gt;tilney     miss    -&gt;bingley   </span>
+<span class="co">#&gt; [19] thousand-&gt;pounds     miss    -&gt;dashwood   dear    -&gt;miss      </span>
+<span class="co">#&gt; [22] miss    -&gt;bennet     miss    -&gt;morland    captain -&gt;benwick   </span>
+<span class="co">#&gt; + ... omitted several edges</span></code></pre></div>
+<p>igraph has plotting functions built in, but they’re not what the package is designed to do, so many other packages have developed visualization methods for graph objects. We recommend the ggraph package <span class="citation">(Pedersen <a href="references.html#ref-R-ggraph" role="doc-biblioref">2017</a>)</span>, because it implements these visualizations in terms of the grammar of graphics, which we are already familiar with from ggplot2.</p>
+<p>We can convert an igraph object into a ggraph with the <code>ggraph</code> function, after which we add layers to it, much like layers are added in ggplot2. For example, for a basic graph we need to add three layers: nodes, edges, and text.</p>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggraph.data-imaginist.com">ggraph</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2017</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span><span class="va">bigram_graph</span>, layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, vjust <span class="op">=</span> <span class="fl">1</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:bigramgraph"></span>
+<img src="04-word-combinations_files/figure-html/bigramgraph-1.png" alt="Common bigrams in Jane Austen's novels, showing those that occurred more than 20 times and where neither word was a stop word" width="90%"><p class="caption">
+Figure 4.4: Common bigrams in Jane Austen’s novels, showing those that occurred more than 20 times and where neither word was a stop word
+</p>
+</div>
+<p>In Figure <a href="ngrams.html#fig:bigramgraph">4.4</a>, we can visualize some details of the text structure. For example, we see that salutations such as “miss”, “lady”, “sir”, and “colonel” form common centers of nodes, which are often followed by names. We also see pairs or triplets along the outside that form common short phrases (“half hour”, “thousand pounds”, or “short time/pause”).</p>
+<p>We conclude with a few polishing operations to make a better looking graph (Figure <a href="ngrams.html#fig:bigramggraphausten2">4.5</a>):</p>
+<ul>
+<li>We add the <code>edge_alpha</code> aesthetic to the link layer to make links transparent based on how common or rare the bigram is</li>
+<li>We add directionality with an arrow, constructed using <code><a href="https://rdrr.io/r/grid/arrow.html">grid::arrow()</a></code>, including an <code>end_cap</code> option that tells the arrow to end before touching the node</li>
+<li>We tinker with the options to the node layer to make the nodes more attractive (larger, blue points)</li>
+<li>We add a theme that’s useful for plotting networks, <code><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void()</a></code>
+</li>
+</ul>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">)</span>
+
+<span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/arrow.html">arrow</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"closed"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">.15</span>, <span class="st">"inches"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span><span class="va">bigram_graph</span>, layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span>,
+                 arrow <span class="op">=</span> <span class="va">a</span>, end_cap <span class="op">=</span> <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geometry.html">circle</a></span><span class="op">(</span><span class="fl">.07</span>, <span class="st">'inches'</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, vjust <span class="op">=</span> <span class="fl">1</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:bigramggraphausten2"></span>
+<img src="04-word-combinations_files/figure-html/bigramggraphausten2-1.png" alt="Common bigrams in Jane Austen's novels, with some polishing" width="90%"><p class="caption">
+Figure 4.5: Common bigrams in Jane Austen’s novels, with some polishing
+</p>
+</div>
+<p>It may take some experimentation with ggraph to get your networks into a presentable format like this, but the network structure is useful and flexible way to visualize relational tidy data.</p>
+<div class="rmdnote">
+<p>
+Note that this is a visualization of a <strong>Markov chain</strong>, a common model in text processing. In a Markov chain, each choice of word depends only on the previous word. In this case, a random generator following this model might spit out “dear”, then “sir”, then “william/walter/thomas/thomas’s”, by following each word to the most common words that follow it. To make the visualization interpretable, we chose to show only the most common word to word connections, but one could imagine an enormous graph representing all connections that occur in the text.
+</p>
+</div>
+</div>
+<div id="visualizing-bigrams-in-other-texts" class="section level3">
+<h3>
+<span class="header-section-number">4.1.5</span> Visualizing bigrams in other texts<a class="anchor" aria-label="anchor" href="#visualizing-bigrams-in-other-texts"><i class="fas fa-link"></i></a>
+</h3>
+<p>We went to a good amount of work in cleaning and visualizing bigrams on a text dataset, so let’s collect it into a function so that we easily perform it on other text datasets.</p>
+<div class="rmdnote">
+<p>
+To make it easy to use the <code>count_bigrams()</code> and <code>visualize_bigrams()</code> yourself, we’ve also reloaded the packages necessary for them.
+</p>
+</div>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://igraph.org">igraph</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggraph.data-imaginist.com">ggraph</a></span><span class="op">)</span>
+
+<span class="va">count_bigrams</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span> <span class="op">{</span>
+  <span class="va">dataset</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="va">text</span>, token <span class="op">=</span> <span class="st">"ngrams"</span>, n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html">separate</a></span><span class="op">(</span><span class="va">bigram</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"word1"</span>, <span class="st">"word2"</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">" "</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">word1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span>,
+           <span class="op">!</span><span class="va">word2</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word1</span>, <span class="va">word2</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="op">}</span>
+
+<span class="va">visualize_bigrams</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">bigrams</span><span class="op">)</span> <span class="op">{</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2016</span><span class="op">)</span>
+  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/arrow.html">arrow</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"closed"</span>, length <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">.15</span>, <span class="st">"inches"</span><span class="op">)</span><span class="op">)</span>
+  
+  <span class="va">bigrams</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">n</span><span class="op">)</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span>, arrow <span class="op">=</span> <span class="va">a</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, vjust <span class="op">=</span> <span class="fl">1</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
+    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span>
+<span class="op">}</span></code></pre></div>
+<p>At this point, we could visualize bigrams in other works, such as the King James Version of the Bible:</p>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># the King James version is book 10 on Project Gutenberg:</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/gutenbergr/">gutenbergr</a></span><span class="op">)</span>
+<span class="va">kjv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/gutenbergr/reference/gutenberg_download.html">gutenberg_download</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
+
+<span class="va">kjv_bigrams</span> <span class="op">&lt;-</span> <span class="va">kjv</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu">count_bigrams</span><span class="op">(</span><span class="op">)</span>
+
+<span class="co"># filter out rare combinations, as well as digits</span>
+<span class="va">kjv_bigrams</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;</span> <span class="fl">40</span>,
+         <span class="op">!</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">word1</span>, <span class="st">"\\d"</span><span class="op">)</span>,
+         <span class="op">!</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">word2</span>, <span class="st">"\\d"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu">visualize_bigrams</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:kjvbigrams"></span>
+<img src="04-word-combinations_files/figure-html/kjvbigrams-1.png" alt="Directed graph of common bigrams in the King James Bible, showing those that occurred more than 40 times" width="90%"><p class="caption">
+Figure 4.6: Directed graph of common bigrams in the King James Bible, showing those that occurred more than 40 times
+</p>
+</div>
+<p>Figure <a href="ngrams.html#fig:kjvbigrams">4.6</a> thus lays out a common “blueprint” of language within the Bible, particularly focused around “thy” and “thou” (which could probably be considered stopwords!) You can use the gutenbergr package and these <code>count_bigrams</code>/<code>visualize_bigrams</code> functions to visualize bigrams in other classic books you’re interested in.</p>
+</div>
+</div>
+<div id="counting-and-correlating-pairs-of-words-with-the-widyr-package" class="section level2">
+<h2>
+<span class="header-section-number">4.2</span> Counting and correlating pairs of words with the widyr package<a class="anchor" aria-label="anchor" href="#counting-and-correlating-pairs-of-words-with-the-widyr-package"><i class="fas fa-link"></i></a>
+</h2>
+<p>Tokenizing by n-gram is a useful way to explore pairs of adjacent words. However, we may also be interested in words that tend to co-occur within particular documents or particular chapters, even if they don’t occur next to each other.</p>
+<p>Tidy data is a useful structure for comparing between variables or grouping by rows, but it can be challenging to compare between rows: for example, to count the number of times that two words appear within the same document, or to see how correlated they are. Most operations for finding pairwise counts or correlations need to turn the data into a wide matrix first.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:widyr"></span>
+<img src="images/tmwr_0407.png" alt="The philosophy behind the widyr package, which can perform operations such as counting and correlating on pairs of values in a tidy dataset. The widyr package first 'casts' a tidy dataset into a wide matrix, performs an operation such as a correlation on it, then re-tidies the result." width="100%"><p class="caption">
+Figure 4.7: The philosophy behind the widyr package, which can perform operations such as counting and correlating on pairs of values in a tidy dataset. The widyr package first ‘casts’ a tidy dataset into a wide matrix, performs an operation such as a correlation on it, then re-tidies the result.
+</p>
+</div>
+<p>We’ll examine some of the ways tidy text can be turned into a wide matrix in Chapter <a href="dtm.html#dtm">5</a>, but in this case it isn’t necessary. The <a href="https://github.com/dgrtwo/widyr">widyr</a> package makes operations such as computing counts and correlations easy, by simplifying the pattern of “widen data, perform an operation, then re-tidy data” (Figure <a href="ngrams.html#fig:widyr">4.7</a>). We’ll focus on a set of functions that make pairwise comparisons between groups of observations (for example, between documents, or sections of text).</p>
+<div id="counting-and-correlating-among-sections" class="section level3">
+<h3>
+<span class="header-section-number">4.2.1</span> Counting and correlating among sections<a class="anchor" aria-label="anchor" href="#counting-and-correlating-among-sections"><i class="fas fa-link"></i></a>
+</h3>
+<p>Consider the book “Pride and Prejudice” divided into 10-line sections, as we did (with larger sections) for sentiment analysis in Chapter <a href="sentiment.html#sentiment">2</a>. We may be interested in what words tend to appear within the same section.</p>
+<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">austen_section_words</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">book</span> <span class="op">==</span> <span class="st">"Pride &amp; Prejudice"</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>section <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/ranking.html">row_number</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html">%/%</a></span> <span class="fl">10</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">section</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">word</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="va">stop_words</span><span class="op">$</span><span class="va">word</span><span class="op">)</span>
+
+<span class="va">austen_section_words</span>
+<span class="co">#&gt; # A tibble: 37,240 × 3</span>
+<span class="co">#&gt;    book              section word        </span>
+<span class="co">#&gt;    &lt;fct&gt;               &lt;dbl&gt; &lt;chr&gt;       </span>
+<span class="co">#&gt;  1 Pride &amp; Prejudice       1 truth       </span>
+<span class="co">#&gt;  2 Pride &amp; Prejudice       1 universally </span>
+<span class="co">#&gt;  3 Pride &amp; Prejudice       1 acknowledged</span>
+<span class="co">#&gt;  4 Pride &amp; Prejudice       1 single      </span>
+<span class="co">#&gt;  5 Pride &amp; Prejudice       1 possession  </span>
+<span class="co">#&gt;  6 Pride &amp; Prejudice       1 fortune     </span>
+<span class="co">#&gt;  7 Pride &amp; Prejudice       1 wife        </span>
+<span class="co">#&gt;  8 Pride &amp; Prejudice       1 feelings    </span>
+<span class="co">#&gt;  9 Pride &amp; Prejudice       1 views       </span>
+<span class="co">#&gt; 10 Pride &amp; Prejudice       1 entering    </span>
+<span class="co">#&gt; # … with 37,230 more rows</span></code></pre></div>
+<p>One useful function from widyr is the <code><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count()</a></code> function. The prefix <code>pairwise_</code> means it will result in one row for each pair of words in the <code>word</code> variable. This lets us count common pairs of words co-appearing within the same section:</p>
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dgrtwo/widyr">widyr</a></span><span class="op">)</span>
+
+<span class="co"># count words co-occuring within sections</span>
+<span class="va">word_pairs</span> <span class="op">&lt;-</span> <span class="va">austen_section_words</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">section</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">word_pairs</span>
+<span class="co">#&gt; # A tibble: 796,008 × 3</span>
+<span class="co">#&gt;    item1     item2         n</span>
+<span class="co">#&gt;    &lt;chr&gt;     &lt;chr&gt;     &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 darcy     elizabeth   144</span>
+<span class="co">#&gt;  2 elizabeth darcy       144</span>
+<span class="co">#&gt;  3 miss      elizabeth   110</span>
+<span class="co">#&gt;  4 elizabeth miss        110</span>
+<span class="co">#&gt;  5 elizabeth jane        106</span>
+<span class="co">#&gt;  6 jane      elizabeth   106</span>
+<span class="co">#&gt;  7 miss      darcy        92</span>
+<span class="co">#&gt;  8 darcy     miss         92</span>
+<span class="co">#&gt;  9 elizabeth bingley      91</span>
+<span class="co">#&gt; 10 bingley   elizabeth    91</span>
+<span class="co">#&gt; # … with 795,998 more rows</span></code></pre></div>
+<p>Notice that while the input had one row for each pair of a document (a 10-line section) and a word, the output has one row for each pair of words. This is also a tidy format, but of a very different structure that we can use to answer new questions.</p>
+<p>For example, we can see that the most common pair of words in a section is “Elizabeth” and “Darcy” (the two main characters). We can easily find the words that most often occur with Darcy:</p>
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">word_pairs</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">item1</span> <span class="op">==</span> <span class="st">"darcy"</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 2,930 × 3</span>
+<span class="co">#&gt;    item1 item2         n</span>
+<span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 darcy elizabeth   144</span>
+<span class="co">#&gt;  2 darcy miss         92</span>
+<span class="co">#&gt;  3 darcy bingley      86</span>
+<span class="co">#&gt;  4 darcy jane         46</span>
+<span class="co">#&gt;  5 darcy bennet       45</span>
+<span class="co">#&gt;  6 darcy sister       45</span>
+<span class="co">#&gt;  7 darcy time         41</span>
+<span class="co">#&gt;  8 darcy lady         38</span>
+<span class="co">#&gt;  9 darcy friend       37</span>
+<span class="co">#&gt; 10 darcy wickham      37</span>
+<span class="co">#&gt; # … with 2,920 more rows</span></code></pre></div>
+</div>
+<div id="pairwise-correlation" class="section level3">
+<h3>
+<span class="header-section-number">4.2.2</span> Pairwise correlation<a class="anchor" aria-label="anchor" href="#pairwise-correlation"><i class="fas fa-link"></i></a>
+</h3>
+<p>Pairs like “Elizabeth” and “Darcy” are the most common co-occurring words, but that’s not particularly meaningful since <em>they’re also the most common individual words.</em> We may instead want to examine <strong>correlation</strong> among words, which indicates how often they appear together relative to how often they appear separately.</p>
+<p>In particular, here we’ll focus on the <a href="https://en.wikipedia.org/wiki/Phi_coefficient">phi coefficient</a>, a common measure for binary correlation. The focus of the phi coefficient is how much more likely it is that either <strong>both</strong> word X and Y appear, or <strong>neither</strong> do, than that one appears without the other.</p>
+<p>Consider the following table:</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th></th>
+<th>Has word Y</th>
+<th>No word Y</th>
+<th>Total</th>
+<th></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Has word X</td>
+<td><span class="math inline">\(n_{11}\)</span></td>
+<td><span class="math inline">\(n_{10}\)</span></td>
+<td><span class="math inline">\(n_{1\cdot}\)</span></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>No word X</td>
+<td><span class="math inline">\(n_{01}\)</span></td>
+<td><span class="math inline">\(n_{00}\)</span></td>
+<td><span class="math inline">\(n_{0\cdot}\)</span></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td><span class="math inline">\(n_{\cdot 1}\)</span></td>
+<td><span class="math inline">\(n_{\cdot 0}\)</span></td>
+<td>n</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>For example, that <span class="math inline">\(n_{11}\)</span> represents the number of documents where both word X and word Y appear, <span class="math inline">\(n_{00}\)</span> the number where neither appears, and <span class="math inline">\(n_{10}\)</span> and <span class="math inline">\(n_{01}\)</span> the cases where one appears without the other. In terms of this table, the phi coefficient is:</p>
+<p><span class="math display">\[\phi=\frac{n_{11}n_{00}-n_{10}n_{01}}{\sqrt{n_{1\cdot}n_{0\cdot}n_{\cdot0}n_{\cdot1}}}\]</span></p>
+<div class="rmdnote">
+<p>
+The phi coefficient is equivalent to the Pearson correlation, which you may have heard of elsewhere when it is applied to binary data.
+</p>
+</div>
+<p>The <code><a href="https://rdrr.io/pkg/widyr/man/pairwise_cor.html">pairwise_cor()</a></code> function in widyr lets us find the phi coefficient between words based on how often they appear in the same section. Its syntax is similar to <code><a href="https://rdrr.io/pkg/widyr/man/pairwise_count.html">pairwise_count()</a></code>.</p>
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># we need to filter for at least relatively common words first</span>
+<span class="va">word_cors</span> <span class="op">&lt;-</span> <span class="va">austen_section_words</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">20</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/widyr/man/pairwise_cor.html">pairwise_cor</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">section</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+
+<span class="va">word_cors</span>
+<span class="co">#&gt; # A tibble: 154,842 × 3</span>
+<span class="co">#&gt;    item1     item2     correlation</span>
+<span class="co">#&gt;    &lt;chr&gt;     &lt;chr&gt;           &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 bourgh    de              0.951</span>
+<span class="co">#&gt;  2 de        bourgh          0.951</span>
+<span class="co">#&gt;  3 pounds    thousand        0.701</span>
+<span class="co">#&gt;  4 thousand  pounds          0.701</span>
+<span class="co">#&gt;  5 william   sir             0.664</span>
+<span class="co">#&gt;  6 sir       william         0.664</span>
+<span class="co">#&gt;  7 catherine lady            0.663</span>
+<span class="co">#&gt;  8 lady      catherine       0.663</span>
+<span class="co">#&gt;  9 forster   colonel         0.622</span>
+<span class="co">#&gt; 10 colonel   forster         0.622</span>
+<span class="co">#&gt; # … with 154,832 more rows</span></code></pre></div>
+<p>This output format is helpful for exploration. For example, we could find the words most correlated with a word like “pounds” using a <code>filter</code> operation.</p>
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">word_cors</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">item1</span> <span class="op">==</span> <span class="st">"pounds"</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 393 × 3</span>
+<span class="co">#&gt;    item1  item2     correlation</span>
+<span class="co">#&gt;    &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 pounds thousand       0.701 </span>
+<span class="co">#&gt;  2 pounds ten            0.231 </span>
+<span class="co">#&gt;  3 pounds fortune        0.164 </span>
+<span class="co">#&gt;  4 pounds settled        0.149 </span>
+<span class="co">#&gt;  5 pounds wickham's      0.142 </span>
+<span class="co">#&gt;  6 pounds children       0.129 </span>
+<span class="co">#&gt;  7 pounds mother's       0.119 </span>
+<span class="co">#&gt;  8 pounds believed       0.0932</span>
+<span class="co">#&gt;  9 pounds estate         0.0890</span>
+<span class="co">#&gt; 10 pounds ready          0.0860</span>
+<span class="co">#&gt; # … with 383 more rows</span></code></pre></div>
+<p>This lets us pick particular interesting words and find the other words most associated with them (Figure <a href="ngrams.html#fig:wordcors">4.8</a>).</p>
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">word_cors</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">item1</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"elizabeth"</span>, <span class="st">"pounds"</span>, <span class="st">"married"</span>, <span class="st">"pride"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">item1</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">correlation</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>item2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">item2</span>, <span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">item2</span>, <span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">item1</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:wordcors"></span>
+<img src="04-word-combinations_files/figure-html/wordcors-1.png" alt="Words from Pride and Prejudice that were most correlated with 'elizabeth', 'pounds', 'married', and 'pride'" width="90%"><p class="caption">
+Figure 4.8: Words from Pride and Prejudice that were most correlated with ‘elizabeth’, ‘pounds’, ‘married’, and ‘pride’
+</p>
+</div>
+<p>Just as we used ggraph to visualize bigrams, we can use it to visualize the correlations and clusters of words that were found by the widyr package (Figure <a href="ngrams.html#fig:wordcorsnetwork">4.9</a>).</p>
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2016</span><span class="op">)</span>
+
+<span class="va">word_cors</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">correlation</span> <span class="op">&gt;</span> <span class="fl">.15</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/igraph/man/graph_from_data_frame.html">graph_from_data_frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/ggraph.html">ggraph</a></span><span class="op">(</span>layout <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_edge_link.html">geom_edge_link</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>edge_alpha <span class="op">=</span> <span class="va">correlation</span><span class="op">)</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_point.html">geom_node_point</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"lightblue"</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggraph.data-imaginist.com/reference/geom_node_text.html">geom_node_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">name</span><span class="op">)</span>, repel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:wordcorsnetwork"></span>
+<img src="04-word-combinations_files/figure-html/wordcorsnetwork-1.png" alt="Pairs of words in Pride and Prejudice that show at least a .15 correlation of appearing within the same 10-line section" width="90%"><p class="caption">
+Figure 4.9: Pairs of words in Pride and Prejudice that show at least a .15 correlation of appearing within the same 10-line section
+</p>
+</div>
+<p>Note that unlike the bigram analysis, the relationships here are symmetrical, rather than directional (there are no arrows). We can also see that while pairings of names and titles that dominated bigram pairings are common, such as “colonel/fitzwilliam”, we can also see pairings of words that appear close to each other, such as “walk” and “park”, or “dance” and “ball”.</p>
+</div>
+</div>
+<div id="summary-3" class="section level2">
+<h2>
+<span class="header-section-number">4.3</span> Summary<a class="anchor" aria-label="anchor" href="#summary-3"><i class="fas fa-link"></i></a>
+</h2>
+<p>This chapter showed how the tidy text approach is useful not only for analyzing individual words, but also for exploring the relationships and connections between words. Such relationships can involve n-grams, which enable us to see what words tend to appear after others, or co-occurences and correlations, for words that appear in proximity to each other. This chapter also demonstrated the ggraph package for visualizing both of these types of relationships as networks. These network visualizations are a flexible tool for exploring relationships, and will play an important role in the case studies in later chapters.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></div>
+<div class="next"><a href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#ngrams"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li>
+<a class="nav-link" href="#tokenizing-by-n-gram"><span class="header-section-number">4.1</span> Tokenizing by n-gram</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#counting-and-filtering-n-grams"><span class="header-section-number">4.1.1</span> Counting and filtering n-grams</a></li>
+<li><a class="nav-link" href="#analyzing-bigrams"><span class="header-section-number">4.1.2</span> Analyzing bigrams</a></li>
+<li><a class="nav-link" href="#using-bigrams-to-provide-context-in-sentiment-analysis"><span class="header-section-number">4.1.3</span> Using bigrams to provide context in sentiment analysis</a></li>
+<li><a class="nav-link" href="#visualizing-a-network-of-bigrams-with-ggraph"><span class="header-section-number">4.1.4</span> Visualizing a network of bigrams with ggraph</a></li>
+<li><a class="nav-link" href="#visualizing-bigrams-in-other-texts"><span class="header-section-number">4.1.5</span> Visualizing bigrams in other texts</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#counting-and-correlating-pairs-of-words-with-the-widyr-package"><span class="header-section-number">4.2</span> Counting and correlating pairs of words with the widyr package</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#counting-and-correlating-among-sections"><span class="header-section-number">4.2.1</span> Counting and correlating among sections</a></li>
+<li><a class="nav-link" href="#pairwise-correlation"><span class="header-section-number">4.2.2</span> Pairwise correlation</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#summary-3"><span class="header-section-number">4.3</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dgrtwo/tidy-text-mining/blob/master/04-word-combinations.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dgrtwo/tidy-text-mining/edit/master/04-word-combinations.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Text Mining with R</strong>: A Tidy Approach" was written by Julia Silge and David Robinson. It was last built on 2022-02-07.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

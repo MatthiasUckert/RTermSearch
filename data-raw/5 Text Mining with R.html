@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>5 Converting to and from non-tidy formats | Text Mining with R</title>
+<meta name="author" content="Julia Silge and David Robinson">
+<meta name="description" content="In the previous chapters, we’ve been analyzing text arranged in the tidy text format: a table with one-token-per-document-per-row, such as is constructed by the unnest_tokens() function. This lets...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="5 Converting to and from non-tidy formats | Text Mining with R">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://www.tidytextmining.com/dtm.html">
+<meta property="og:image" content="https://www.tidytextmining.com/images/cover.png">
+<meta property="og:description" content="In the previous chapters, we’ve been analyzing text arranged in the tidy text format: a table with one-token-per-document-per-row, such as is constructed by the unnest_tokens() function. This lets...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="5 Converting to and from non-tidy formats | Text Mining with R">
+<meta name="twitter:description" content="In the previous chapters, we’ve been analyzing text arranged in the tidy text format: a table with one-token-per-document-per-row, such as is constructed by the unnest_tokens() function. This lets...">
+<meta name="twitter:image" content="https://www.tidytextmining.com/images/cover.png">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-68765210-2', 'auto');
+    ga('send', 'pageview');
+  
+  </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="A Tidy Approach">Text Mining with R</a>:
+        <small class="text-muted">A Tidy Approach</small>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Welcome to Text Mining with R</a></li>
+<li><a class="" href="preface.html">Preface</a></li>
+<li><a class="" href="tidytext.html"><span class="header-section-number">1</span> The tidy text format</a></li>
+<li><a class="" href="sentiment.html"><span class="header-section-number">2</span> Sentiment analysis with tidy data</a></li>
+<li><a class="" href="tfidf.html"><span class="header-section-number">3</span> Analyzing word and document frequency: tf-idf</a></li>
+<li><a class="" href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></li>
+<li><a class="active" href="dtm.html"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li><a class="" href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></li>
+<li><a class="" href="twitter.html"><span class="header-section-number">7</span> Case study: comparing Twitter archives</a></li>
+<li><a class="" href="nasa.html"><span class="header-section-number">8</span> Case study: mining NASA metadata</a></li>
+<li><a class="" href="usenet.html"><span class="header-section-number">9</span> Case study: analyzing usenet text</a></li>
+<li><a class="" href="references.html"><span class="header-section-number">10</span> References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/dgrtwo/tidy-text-mining">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="dtm" class="section level1">
+<h1>
+<span class="header-section-number">5</span> Converting to and from non-tidy formats<a class="anchor" aria-label="anchor" href="#dtm"><i class="fas fa-link"></i></a>
+</h1>
+<p>In the previous chapters, we’ve been analyzing text arranged in the tidy text format: a table with one-token-per-document-per-row, such as is constructed by the <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> function. This lets us use the popular suite of tidy tools such as dplyr, tidyr, and ggplot2 to explore and visualize text data. We’ve demonstrated that many informative text analyses can be performed using these tools.</p>
+<p>However, most of the existing R tools for natural language processing, besides the tidytext package, aren’t compatible with this format. The <a href="https://cran.r-project.org/web/views/NaturalLanguageProcessing.html">CRAN Task View for Natural Language Processing</a> lists a large selection of packages that take other structures of input and provide non-tidy outputs. These packages are very useful in text mining applications, and many existing text datasets are structured according to these formats.</p>
+<p>Computer scientist Hal Abelson has observed that “No matter how complex and polished the individual operations are, it is often the quality of the glue that most directly determines the power of the system” <span class="citation">(Abelson <a href="references.html#ref-Friedman:2008:EPL:1378240" role="doc-biblioref">2008</a>)</span>. In that spirit, this chapter will discuss the “glue” that connects the tidy text format with other important packages and data structures, allowing you to rely on both existing text mining packages and the suite of tidy tools to perform your analysis.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:tidyflowchartch5"></span>
+<img src="images/tmwr_0501.png" alt="A flowchart of a typical text analysis that combines tidytext with other tools and data formats, particularly the tm or quanteda packages. This chapter shows how to convert back and forth between document-term matrices and tidy data frames, as well as converting from a Corpus object to a text data frame." width="100%"><p class="caption">
+Figure 5.1: A flowchart of a typical text analysis that combines tidytext with other tools and data formats, particularly the tm or quanteda packages. This chapter shows how to convert back and forth between document-term matrices and tidy data frames, as well as converting from a Corpus object to a text data frame.
+</p>
+</div>
+<p>Figure <a href="dtm.html#fig:tidyflowchartch5">5.1</a> illustrates how an analysis might switch between tidy and non-tidy data structures and tools. This chapter will focus on the process of tidying document-term matrices, as well as casting a tidy data frame into a sparse matrix. We’ll also explore how to tidy Corpus objects, which combine raw text with document metadata, into text data frames, leading to a case study of ingesting and analyzing financial articles.</p>
+<div id="tidy-dtm" class="section level2">
+<h2>
+<span class="header-section-number">5.1</span> Tidying a document-term matrix<a class="anchor" aria-label="anchor" href="#tidy-dtm"><i class="fas fa-link"></i></a>
+</h2>
+<p>One of the most common structures that text mining packages work with is the <a href="https://en.wikipedia.org/wiki/Document-term_matrix">document-term matrix</a> (or DTM). This is a matrix where:</p>
+<ul>
+<li>each row represents one document (such as a book or article),</li>
+<li>each column represents one term, and</li>
+<li>each value (typically) contains the number of appearances of that term in that document.</li>
+</ul>
+<p>Since most pairings of document and term do not occur (they have the value zero), DTMs are usually implemented as sparse matrices. These objects can be treated as though they were matrices (for example, accessing particular rows and columns), but are stored in a more efficient format. We’ll discuss several implementations of these matrices in this chapter.</p>
+<p>DTM objects cannot be used directly with tidy tools, just as tidy data frames cannot be used as input for most text mining packages. Thus, the tidytext package provides two verbs that convert between the two formats.</p>
+<ul>
+<li>
+<code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> turns a document-term matrix into a tidy data frame. This verb comes from the broom package <span class="citation">(Robinson <a href="references.html#ref-R-broom" role="doc-biblioref">2017</a>)</span>, which provides similar tidying functions for many statistical models and objects.</li>
+<li>
+<code><a href="https://rdrr.io/pkg/reshape2/man/cast.html">cast()</a></code> turns a tidy one-term-per-row data frame into a matrix. tidytext provides three variations of this verb, each converting to a different type of matrix: <code><a href="https://rdrr.io/pkg/tidytext/man/cast_sparse.html">cast_sparse()</a></code> (converting to a sparse matrix from the Matrix package), <code><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dtm()</a></code> (converting to a <code>DocumentTermMatrix</code> object from tm), and <code><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dfm()</a></code> (converting to a <code>dfm</code> object from quanteda).</li>
+</ul>
+<p>As shown in Figure <a href="dtm.html#fig:tidyflowchartch5">5.1</a>, a DTM is typically comparable to a tidy data frame after a <code>count</code> or a <code>group_by</code>/<code>summarize</code> that contains counts or another statistic for each combination of a term and document.</p>
+<div id="tidying-documenttermmatrix-objects" class="section level3">
+<h3>
+<span class="header-section-number">5.1.1</span> Tidying DocumentTermMatrix objects<a class="anchor" aria-label="anchor" href="#tidying-documenttermmatrix-objects"><i class="fas fa-link"></i></a>
+</h3>
+<p>Perhaps the most widely used implementation of DTMs in R is the <code>DocumentTermMatrix</code> class in the tm package. Many available text mining datasets are provided in this format. For example, consider the collection of Associated Press newspaper articles included in the topicmodels package.</p>
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://tm.r-forge.r-project.org/">tm</a></span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"AssociatedPress"</span>, package <span class="op">=</span> <span class="st">"topicmodels"</span><span class="op">)</span>
+<span class="va">AssociatedPress</span>
+<span class="co">#&gt; &lt;&lt;DocumentTermMatrix (documents: 2246, terms: 10473)&gt;&gt;</span>
+<span class="co">#&gt; Non-/sparse entries: 302031/23220327</span>
+<span class="co">#&gt; Sparsity           : 99%</span>
+<span class="co">#&gt; Maximal term length: 18</span>
+<span class="co">#&gt; Weighting          : term frequency (tf)</span></code></pre></div>
+<p>We see that this dataset contains 2246 documents (each of them an AP article) and 10473 terms (distinct words). Notice that this DTM is 99% sparse (99% of document-word pairs are zero). We could access the terms in the document with the <code><a href="https://rdrr.io/pkg/tm/man/Docs.html">Terms()</a></code> function.</p>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">terms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/tm/man/Docs.html">Terms</a></span><span class="op">(</span><span class="va">AssociatedPress</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">terms</span><span class="op">)</span>
+<span class="co">#&gt; [1] "aaron"      "abandon"    "abandoned"  "abandoning" "abbott"    </span>
+<span class="co">#&gt; [6] "abboud"</span></code></pre></div>
+<p>If we wanted to analyze this data with tidy tools, we would first need to turn it into a data frame with one-token-per-document-per-row. The broom package introduced the <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> verb, which takes a non-tidy object and turns it into a tidy data frame. The tidytext package implements this method for <code>DocumentTermMatrix</code> objects.</p>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/tidytext">tidytext</a></span><span class="op">)</span>
+
+<span class="va">ap_td</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html">tidy</a></span><span class="op">(</span><span class="va">AssociatedPress</span><span class="op">)</span>
+<span class="va">ap_td</span>
+<span class="co">#&gt; # A tibble: 302,031 × 3</span>
+<span class="co">#&gt;    document term       count</span>
+<span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;      &lt;dbl&gt;</span>
+<span class="co">#&gt;  1        1 adding         1</span>
+<span class="co">#&gt;  2        1 adult          2</span>
+<span class="co">#&gt;  3        1 ago            1</span>
+<span class="co">#&gt;  4        1 alcohol        1</span>
+<span class="co">#&gt;  5        1 allegedly      1</span>
+<span class="co">#&gt;  6        1 allen          1</span>
+<span class="co">#&gt;  7        1 apparently     2</span>
+<span class="co">#&gt;  8        1 appeared       1</span>
+<span class="co">#&gt;  9        1 arrested       1</span>
+<span class="co">#&gt; 10        1 assault        1</span>
+<span class="co">#&gt; # … with 302,021 more rows</span></code></pre></div>
+<p>Notice that we now have a tidy three-column <code>tbl_df</code>, with variables <code>document</code>, <code>term</code>, and <code>count</code>. This tidying operation is similar to the <code><a href="https://rdrr.io/pkg/reshape2/man/melt.html">melt()</a></code> function from the reshape2 package <span class="citation">(Wickham <a href="references.html#ref-R-reshape2" role="doc-biblioref">2007</a>)</span> for non-sparse matrices.</p>
+<div class="rmdnote">
+<p>
+Notice that only the non-zero values are included in the tidied output: document 1 includes terms such as “adding” and “adult”, but not “aaron” or “abandon”. This means the tidied version has no rows where <code>count</code> is zero.
+</p>
+</div>
+<p>As we’ve seen in previous chapters, this form is convenient for analysis with the dplyr, tidytext and ggplot2 packages. For example, you can perform sentiment analysis on these newspaper articles with the approach described in Chapter <a href="sentiment.html#sentiment">2</a>.</p>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ap_sentiments</span> <span class="op">&lt;-</span> <span class="va">ap_td</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/get_sentiments.html">get_sentiments</a></span><span class="op">(</span><span class="st">"bing"</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>term <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">ap_sentiments</span>
+<span class="co">#&gt; # A tibble: 30,094 × 4</span>
+<span class="co">#&gt;    document term    count sentiment</span>
+<span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;    </span>
+<span class="co">#&gt;  1        1 assault     1 negative </span>
+<span class="co">#&gt;  2        1 complex     1 negative </span>
+<span class="co">#&gt;  3        1 death       1 negative </span>
+<span class="co">#&gt;  4        1 died        1 negative </span>
+<span class="co">#&gt;  5        1 good        2 positive </span>
+<span class="co">#&gt;  6        1 illness     1 negative </span>
+<span class="co">#&gt;  7        1 killed      2 negative </span>
+<span class="co">#&gt;  8        1 like        2 positive </span>
+<span class="co">#&gt;  9        1 liked       1 positive </span>
+<span class="co">#&gt; 10        1 miracle     1 positive </span>
+<span class="co">#&gt; # … with 30,084 more rows</span></code></pre></div>
+<p>This would let us visualize which words from the AP articles most often contributed to positive or negative sentiment, seen in Figure <a href="dtm.html#fig:apsentimentplot">5.2</a>. We can see that the most common positive words include “like”, “work”, “support”, and “good”, while the most negative words include “killed”, “death”, and “vice”. (The inclusion of “vice” as a negative term is probably a mistake on the algorithm’s part, since it likely usually refers to “vice president”).</p>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+
+<span class="va">ap_sentiments</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">sentiment</span>, <span class="va">term</span>, wt <span class="op">=</span> <span class="va">count</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">n</span> <span class="op">&gt;=</span> <span class="fl">200</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">sentiment</span> <span class="op">==</span> <span class="st">"negative"</span>, <span class="op">-</span><span class="va">n</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>term <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">term</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">term</span>, fill <span class="op">=</span> <span class="va">sentiment</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Contribution to sentiment"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:apsentimentplot"></span>
+<img src="05-document-term-matrices_files/figure-html/apsentimentplot-1.png" alt="Words from AP articles with the greatest contribution to positive or negative sentiments, using the Bing sentiment lexicon" width="90%"><p class="caption">
+Figure 5.2: Words from AP articles with the greatest contribution to positive or negative sentiments, using the Bing sentiment lexicon
+</p>
+</div>
+</div>
+<div id="tidying-dfm-objects" class="section level3">
+<h3>
+<span class="header-section-number">5.1.2</span> Tidying <code>dfm</code> objects<a class="anchor" aria-label="anchor" href="#tidying-dfm-objects"><i class="fas fa-link"></i></a>
+</h3>
+<p>Other text mining packages provide alternative implementations of document-term matrices, such as the <code>dfm</code> (document-feature matrix) class from the quanteda package <span class="citation">(Benoit and Nulty <a href="references.html#ref-R-quanteda" role="doc-biblioref">2016</a>)</span>. For example, the quanteda package comes with a corpus of presidential inauguration speeches, which can be converted to a <code>dfm</code> using the appropriate functions.</p>
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"data_corpus_inaugural"</span>, package <span class="op">=</span> <span class="st">"quanteda"</span><span class="op">)</span>
+<span class="va">inaug_dfm</span> <span class="op">&lt;-</span> <span class="va">data_corpus_inaugural</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/tokens.html">tokens</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu">quanteda</span><span class="fu">::</span><span class="fu"><a href="https://quanteda.io/reference/dfm.html">dfm</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
+<span class="va">inaug_dfm</span>
+<span class="co">#&gt; Document-feature matrix of: 59 documents, 9,439 features (91.84% sparse) and 4 docvars.</span></code></pre></div>
+<p>The <code>tidy</code> method works on these document-feature matrices as well, turning them into a one-token-per-document-per-row table:</p>
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">inaug_td</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html">tidy</a></span><span class="op">(</span><span class="va">inaug_dfm</span><span class="op">)</span>
+<span class="va">inaug_td</span>
+<span class="co">#&gt; # A tibble: 45,453 × 3</span>
+<span class="co">#&gt;    document        term            count</span>
+<span class="co">#&gt;    &lt;chr&gt;           &lt;chr&gt;           &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 1789-Washington fellow-citizens     1</span>
+<span class="co">#&gt;  2 1797-Adams      fellow-citizens     3</span>
+<span class="co">#&gt;  3 1801-Jefferson  fellow-citizens     2</span>
+<span class="co">#&gt;  4 1809-Madison    fellow-citizens     1</span>
+<span class="co">#&gt;  5 1813-Madison    fellow-citizens     1</span>
+<span class="co">#&gt;  6 1817-Monroe     fellow-citizens     5</span>
+<span class="co">#&gt;  7 1821-Monroe     fellow-citizens     1</span>
+<span class="co">#&gt;  8 1841-Harrison   fellow-citizens    11</span>
+<span class="co">#&gt;  9 1845-Polk       fellow-citizens     1</span>
+<span class="co">#&gt; 10 1849-Taylor     fellow-citizens     1</span>
+<span class="co">#&gt; # … with 45,443 more rows</span></code></pre></div>
+<p>We may be interested in finding the words most specific to each of the inaugural speeches. This could be quantified by calculating the tf-idf of each term-speech pair using the <code><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf()</a></code> function, as described in Chapter <a href="tfidf.html#tfidf">3</a>.</p>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">inaug_tf_idf</span> <span class="op">&lt;-</span> <span class="va">inaug_td</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">term</span>, <span class="va">document</span>, <span class="va">count</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">inaug_tf_idf</span>
+<span class="co">#&gt; # A tibble: 45,453 × 6</span>
+<span class="co">#&gt;    document        term        count      tf   idf tf_idf</span>
+<span class="co">#&gt;    &lt;chr&gt;           &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 1793-Washington arrive          1 0.00680  4.08 0.0277</span>
+<span class="co">#&gt;  2 1793-Washington upbraidings     1 0.00680  4.08 0.0277</span>
+<span class="co">#&gt;  3 1793-Washington violated        1 0.00680  3.38 0.0230</span>
+<span class="co">#&gt;  4 1793-Washington willingly       1 0.00680  3.38 0.0230</span>
+<span class="co">#&gt;  5 1793-Washington incurring       1 0.00680  3.38 0.0230</span>
+<span class="co">#&gt;  6 1793-Washington previous        1 0.00680  2.98 0.0203</span>
+<span class="co">#&gt;  7 1793-Washington knowingly       1 0.00680  2.98 0.0203</span>
+<span class="co">#&gt;  8 1793-Washington injunctions     1 0.00680  2.98 0.0203</span>
+<span class="co">#&gt;  9 1793-Washington witnesses       1 0.00680  2.98 0.0203</span>
+<span class="co">#&gt; 10 1793-Washington besides         1 0.00680  2.69 0.0183</span>
+<span class="co">#&gt; # … with 45,443 more rows</span></code></pre></div>
+<p>We could use this data to pick four notable inaugural addresses (from Presidents Lincoln, Roosevelt, Kennedy, and Obama), and visualize the words most specific to each speech, as shown in Figure <a href="dtm.html#fig:presidentspeeches">5.3</a>.</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:presidentspeeches"></span>
+<img src="05-document-term-matrices_files/figure-html/presidentspeeches-1.png" alt="The terms with the highest tf-idf from each of four selected inaugural addresses. Note that quanteda's tokenizer includes the '?' punctuation mark as a term, though the texts we've tokenized ourselves with `unnest_tokens()` do not." width="90%"><p class="caption">
+Figure 5.3: The terms with the highest tf-idf from each of four selected inaugural addresses. Note that quanteda’s tokenizer includes the ‘?’ punctuation mark as a term, though the texts we’ve tokenized ourselves with <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> do not.
+</p>
+</div>
+<p>As another example of a visualization possible with tidy data, we could extract the year from each document’s name, and compute the total number of words within each year.</p>
+<div class="rmdnote">
+<p>
+Note that we’ve used tidyr’s <code><a href="https://tidyr.tidyverse.org/reference/complete.html">complete()</a></code> function to include zeroes (cases where a word didn’t appear in a document) in the table.
+</p>
+</div>
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org">tidyr</a></span><span class="op">)</span>
+
+<span class="va">year_term_counts</span> <span class="op">&lt;-</span> <span class="va">inaug_td</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/extract.html">extract</a></span><span class="op">(</span><span class="va">document</span>, <span class="st">"year"</span>, <span class="st">"(\\d+)"</span>, convert <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">term</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year_total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">count</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>This lets us pick several words and visualize how they changed in frequency over time, as shown in <a href="dtm.html#fig:yearterm">5.4</a>. We can see that over time, American presidents became less likely to refer to the country as the “Union” and more likely to refer to “America”. They also became less likely to talk about the “constitution” and foreign" countries, and more likely to mention “freedom” and “God”.</p>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">year_term_counts</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"god"</span>, <span class="st">"america"</span>, <span class="st">"foreign"</span>, <span class="st">"union"</span>, <span class="st">"constitution"</span>, <span class="st">"freedom"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">count</span> <span class="op">/</span> <span class="va">year_total</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html">geom_smooth</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">term</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/label_percent.html">percent_format</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"% frequency of word in inaugural address"</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:yearterm"></span>
+<img src="05-document-term-matrices_files/figure-html/yearterm-1.png" alt="Changes in word frequency over time within Presidential inaugural addresses, for six selected terms" width="90%"><p class="caption">
+Figure 5.4: Changes in word frequency over time within Presidential inaugural addresses, for six selected terms
+</p>
+</div>
+<p>These examples show how you can use tidytext, and the related suite of tidy tools, to analyze sources even if their origin was not in a tidy format.</p>
+</div>
+</div>
+<div id="cast-dtm" class="section level2">
+<h2>
+<span class="header-section-number">5.2</span> Casting tidy text data into a matrix<a class="anchor" aria-label="anchor" href="#cast-dtm"><i class="fas fa-link"></i></a>
+</h2>
+<p>Just as some existing text mining packages provide document-term matrices as sample data or output, some algorithms expect such matrices as input. Therefore, tidytext provides <code>cast_</code> verbs for converting from a tidy form to these matrices.</p>
+<p>For example, we could take the tidied AP dataset and cast it back into a document-term matrix using the <code><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dtm()</a></code> function.</p>
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ap_td</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dtm</a></span><span class="op">(</span><span class="va">document</span>, <span class="va">term</span>, <span class="va">count</span><span class="op">)</span>
+<span class="co">#&gt; &lt;&lt;DocumentTermMatrix (documents: 2246, terms: 10473)&gt;&gt;</span>
+<span class="co">#&gt; Non-/sparse entries: 302031/23220327</span>
+<span class="co">#&gt; Sparsity           : 99%</span>
+<span class="co">#&gt; Maximal term length: 18</span>
+<span class="co">#&gt; Weighting          : term frequency (tf)</span></code></pre></div>
+<p>Similarly, we could cast the table into a <code>dfm</code> object from quanteda’s dfm with <code><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dfm()</a></code>.</p>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">ap_td</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dfm</a></span><span class="op">(</span><span class="va">document</span>, <span class="va">term</span>, <span class="va">count</span><span class="op">)</span>
+<span class="co">#&gt; Document-feature matrix of: 2,246 documents, 10,473 features (98.72% sparse) and 0 docvars.</span></code></pre></div>
+<p>Some tools simply require a sparse matrix:</p>
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org/">Matrix</a></span><span class="op">)</span>
+
+<span class="co"># cast into a Matrix object</span>
+<span class="va">m</span> <span class="op">&lt;-</span> <span class="va">ap_td</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/cast_sparse.html">cast_sparse</a></span><span class="op">(</span><span class="va">document</span>, <span class="va">term</span>, <span class="va">count</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>
+<span class="co">#&gt; [1] "dgCMatrix"</span>
+<span class="co">#&gt; attr(,"package")</span>
+<span class="co">#&gt; [1] "Matrix"</span>
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span>
+<span class="co">#&gt; [1]  2246 10473</span></code></pre></div>
+<p>This kind of conversion could easily be done from any of the tidy text structures we’ve used so far in this book. For example, we could create a DTM of Jane Austen’s books in just a few lines of code.</p>
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/juliasilge/janeaustenr">janeaustenr</a></span><span class="op">)</span>
+
+<span class="va">austen_dtm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/janeaustenr/man/austen_books.html">austen_books</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">book</span>, <span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/document_term_casters.html">cast_dtm</a></span><span class="op">(</span><span class="va">book</span>, <span class="va">word</span>, <span class="va">n</span><span class="op">)</span>
+
+<span class="va">austen_dtm</span>
+<span class="co">#&gt; &lt;&lt;DocumentTermMatrix (documents: 6, terms: 14520)&gt;&gt;</span>
+<span class="co">#&gt; Non-/sparse entries: 40379/46741</span>
+<span class="co">#&gt; Sparsity           : 54%</span>
+<span class="co">#&gt; Maximal term length: 19</span>
+<span class="co">#&gt; Weighting          : term frequency (tf)</span></code></pre></div>
+<p>This casting process allows for reading, filtering, and processing to be done using dplyr and other tidy tools, after which the data can be converted into a document-term matrix for machine learning applications. In Chapter <a href="topicmodeling.html#topicmodeling">6</a>, we’ll examine some examples where a tidy-text dataset has to be converted into a DocumentTermMatrix for processing.</p>
+</div>
+<div id="tidying-corpus-objects-with-metadata" class="section level2">
+<h2>
+<span class="header-section-number">5.3</span> Tidying corpus objects with metadata<a class="anchor" aria-label="anchor" href="#tidying-corpus-objects-with-metadata"><i class="fas fa-link"></i></a>
+</h2>
+<p>Some data structures are designed to store document collections <em>before</em> tokenization, often called a “corpus”. One common example is <code>Corpus</code> objects from the tm package. These store text alongside <strong>metadata</strong>, which may include an ID, date/time, title, or language for each document.</p>
+<p>For example, the tm package comes with the <code>acq</code> corpus, containing 50 articles from the news service Reuters.</p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"acq"</span><span class="op">)</span>
+<span class="va">acq</span>
+<span class="co">#&gt; &lt;&lt;VCorpus&gt;&gt;</span>
+<span class="co">#&gt; Metadata:  corpus specific: 0, document level (indexed): 0</span>
+<span class="co">#&gt; Content:  documents: 50</span>
+
+<span class="co"># first document</span>
+<span class="va">acq</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>
+<span class="co">#&gt; &lt;&lt;PlainTextDocument&gt;&gt;</span>
+<span class="co">#&gt; Metadata:  15</span>
+<span class="co">#&gt; Content:  chars: 1287</span></code></pre></div>
+<p>A corpus object is structured like a list, with each item containing both text and metadata (see the tm documentation for more on working with Corpus documents). This is a flexible storage method for documents, but doesn’t lend itself to processing with tidy tools.</p>
+<p>We can thus use the <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> method to construct a table with one row per document, including the metadata (such as <code>id</code> and <code>datetimestamp</code>) as columns alongside the <code>text</code>.</p>
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">acq_td</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html">tidy</a></span><span class="op">(</span><span class="va">acq</span><span class="op">)</span>
+<span class="va">acq_td</span>
+<span class="co">#&gt; # A tibble: 50 × 16</span>
+<span class="co">#&gt;    author   datetimestamp       description heading id    language origin topics</span>
+<span class="co">#&gt;    &lt;chr&gt;    &lt;dttm&gt;              &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt; </span>
+<span class="co">#&gt;  1 &lt;NA&gt;     1987-02-26 15:18:06 ""          COMPUT… 10    en       Reute… YES   </span>
+<span class="co">#&gt;  2 &lt;NA&gt;     1987-02-26 15:19:15 ""          OHIO M… 12    en       Reute… YES   </span>
+<span class="co">#&gt;  3 &lt;NA&gt;     1987-02-26 15:49:56 ""          MCLEAN… 44    en       Reute… YES   </span>
+<span class="co">#&gt;  4 By Cal … 1987-02-26 15:51:17 ""          CHEMLA… 45    en       Reute… YES   </span>
+<span class="co">#&gt;  5 &lt;NA&gt;     1987-02-26 16:08:33 ""          &lt;COFAB… 68    en       Reute… YES   </span>
+<span class="co">#&gt;  6 &lt;NA&gt;     1987-02-26 16:32:37 ""          INVEST… 96    en       Reute… YES   </span>
+<span class="co">#&gt;  7 By Patt… 1987-02-26 16:43:13 ""          AMERIC… 110   en       Reute… YES   </span>
+<span class="co">#&gt;  8 &lt;NA&gt;     1987-02-26 16:59:25 ""          HONG K… 125   en       Reute… YES   </span>
+<span class="co">#&gt;  9 &lt;NA&gt;     1987-02-26 17:01:28 ""          LIEBER… 128   en       Reute… YES   </span>
+<span class="co">#&gt; 10 &lt;NA&gt;     1987-02-26 17:08:27 ""          GULF A… 134   en       Reute… YES   </span>
+<span class="co">#&gt; # … with 40 more rows, and 8 more variables: lewissplit &lt;chr&gt;, cgisplit &lt;chr&gt;,</span>
+<span class="co">#&gt; #   oldid &lt;chr&gt;, places &lt;named list&gt;, people &lt;lgl&gt;, orgs &lt;lgl&gt;,</span>
+<span class="co">#&gt; #   exchanges &lt;lgl&gt;, text &lt;chr&gt;</span></code></pre></div>
+<p>This can then be used with <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code> to, for example, find the most common words across the 50 Reuters articles, or the ones most specific to each article.</p>
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">acq_tokens</span> <span class="op">&lt;-</span> <span class="va">acq_td</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">places</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span>, by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span>
+
+<span class="co"># most common words</span>
+<span class="va">acq_tokens</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 1,566 × 2</span>
+<span class="co">#&gt;    word         n</span>
+<span class="co">#&gt;    &lt;chr&gt;    &lt;int&gt;</span>
+<span class="co">#&gt;  1 dlrs       100</span>
+<span class="co">#&gt;  2 pct         70</span>
+<span class="co">#&gt;  3 mln         65</span>
+<span class="co">#&gt;  4 company     63</span>
+<span class="co">#&gt;  5 shares      52</span>
+<span class="co">#&gt;  6 reuter      50</span>
+<span class="co">#&gt;  7 stock       46</span>
+<span class="co">#&gt;  8 offer       34</span>
+<span class="co">#&gt;  9 share       34</span>
+<span class="co">#&gt; 10 american    28</span>
+<span class="co">#&gt; # … with 1,556 more rows</span>
+
+<span class="co"># tf-idf</span>
+<span class="va">acq_tokens</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">id</span>, <span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://tidyr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">tf_idf</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 2,853 × 6</span>
+<span class="co">#&gt;    id    word         n     tf   idf tf_idf</span>
+<span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;    &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt;  1 186   groupe       2 0.133   3.91  0.522</span>
+<span class="co">#&gt;  2 128   liebert      3 0.130   3.91  0.510</span>
+<span class="co">#&gt;  3 474   esselte      5 0.109   3.91  0.425</span>
+<span class="co">#&gt;  4 371   burdett      6 0.103   3.91  0.405</span>
+<span class="co">#&gt;  5 442   hazleton     4 0.103   3.91  0.401</span>
+<span class="co">#&gt;  6 199   circuit      5 0.102   3.91  0.399</span>
+<span class="co">#&gt;  7 162   suffield     2 0.1     3.91  0.391</span>
+<span class="co">#&gt;  8 498   west         3 0.1     3.91  0.391</span>
+<span class="co">#&gt;  9 441   rmj          8 0.121   3.22  0.390</span>
+<span class="co">#&gt; 10 467   nursery      3 0.0968  3.91  0.379</span>
+<span class="co">#&gt; # … with 2,843 more rows</span></code></pre></div>
+<div id="financial" class="section level3">
+<h3>
+<span class="header-section-number">5.3.1</span> Example: mining financial articles<a class="anchor" aria-label="anchor" href="#financial"><i class="fas fa-link"></i></a>
+</h3>
+<p><code>Corpus</code> objects are a common output format for data ingesting packages, which means the <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> function gives us access to a wide variety of text data. One example is <a href="https://cran.r-project.org/package=tm.plugin.webmining">tm.plugin.webmining</a>, which connects to online feeds to retrieve news articles based on a keyword. For instance, performing <code>WebCorpus(GoogleFinanceSource("NASDAQ:MSFT"))</code> allows us to retrieve the 20 most recent articles related to the Microsoft (MSFT) stock.</p>
+<p>Here we’ll retrieve recent articles relevant to nine major technology stocks: Microsoft, Apple, Google, Amazon, Facebook, Twitter, IBM, Yahoo, and Netflix.</p>
+<div class="rmdnote">
+<p>
+These results were downloaded in January 2017, when this chapter was written, but you’ll certainly find different results if you ran it for yourself. Note that this code takes several minutes to run.
+</p>
+</div>
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mannau/tm.plugin.webmining">tm.plugin.webmining</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://purrr.tidyverse.org">purrr</a></span><span class="op">)</span>
+
+<span class="va">company</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Microsoft"</span>, <span class="st">"Apple"</span>, <span class="st">"Google"</span>, <span class="st">"Amazon"</span>, <span class="st">"Facebook"</span>,
+             <span class="st">"Twitter"</span>, <span class="st">"IBM"</span>, <span class="st">"Yahoo"</span>, <span class="st">"Netflix"</span><span class="op">)</span>
+<span class="va">symbol</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"MSFT"</span>, <span class="st">"AAPL"</span>, <span class="st">"GOOG"</span>, <span class="st">"AMZN"</span>, <span class="st">"FB"</span>, 
+             <span class="st">"TWTR"</span>, <span class="st">"IBM"</span>, <span class="st">"YHOO"</span>, <span class="st">"NFLX"</span><span class="op">)</span>
+
+<span class="va">download_articles</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">symbol</span><span class="op">)</span> <span class="op">{</span>
+  <span class="fu">WebCorpus</span><span class="op">(</span><span class="fu">GoogleFinanceSource</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"NASDAQ:"</span>, <span class="va">symbol</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="op">}</span>
+
+<span class="va">stock_articles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>company <span class="op">=</span> <span class="va">company</span>,
+                         symbol <span class="op">=</span> <span class="va">symbol</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>corpus <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">symbol</span>, <span class="va">download_articles</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<p>This uses the <code><a href="https://purrr.tidyverse.org/reference/map.html">map()</a></code> function from the purrr package, which applies a function to each item in <code>symbol</code> to create a list, which we store in the <code>corpus</code> list column.</p>
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_articles</span>
+<span class="co">#&gt; # A tibble: 9 × 3</span>
+<span class="co">#&gt;   company   symbol corpus    </span>
+<span class="co">#&gt;   &lt;chr&gt;     &lt;chr&gt;  &lt;list&gt;    </span>
+<span class="co">#&gt; 1 Microsoft MSFT   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 2 Apple     AAPL   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 3 Google    GOOG   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 4 Amazon    AMZN   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 5 Facebook  FB     &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 6 Twitter   TWTR   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 7 IBM       IBM    &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 8 Yahoo     YHOO   &lt;WebCorps&gt;</span>
+<span class="co">#&gt; 9 Netflix   NFLX   &lt;WebCorps&gt;</span></code></pre></div>
+<p>Each of the items in the <code>corpus</code> list column is a <code>WebCorpus</code> object, which is a special case of a corpus like <code>acq</code>. We can thus turn each into a data frame using the <code><a href="https://generics.r-lib.org/reference/tidy.html">tidy()</a></code> function, unnest it with tidyr’s <code><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest()</a></code>, then tokenize the <code>text</code> column of the individual articles using <code><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens()</a></code>.</p>
+<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_tokens</span> <span class="op">&lt;-</span> <span class="va">stock_articles</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>corpus <span class="op">=</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map</a></span><span class="op">(</span><span class="va">corpus</span>, <span class="va">tidy</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">(</span><span class="va">corpus</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/unnest_tokens.html">unnest_tokens</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">text</span><span class="op">)</span> <span class="op"><a href="https://purrr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">company</span>, <span class="va">datetimestamp</span>, <span class="va">word</span>, <span class="va">id</span>, <span class="va">heading</span><span class="op">)</span>
+
+<span class="va">stock_tokens</span>
+<span class="co">#&gt; # A tibble: 105,057 × 5</span>
+<span class="co">#&gt;    company   datetimestamp       word        id                          heading</span>
+<span class="co">#&gt;    &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;       &lt;chr&gt;                       &lt;chr&gt;  </span>
+<span class="co">#&gt;  1 Microsoft 2017-01-17 12:07:24 microsoft   tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  2 Microsoft 2017-01-17 12:07:24 corporation tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  3 Microsoft 2017-01-17 12:07:24 data        tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  4 Microsoft 2017-01-17 12:07:24 privacy     tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  5 Microsoft 2017-01-17 12:07:24 could       tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  6 Microsoft 2017-01-17 12:07:24 send        tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  7 Microsoft 2017-01-17 12:07:24 msft        tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  8 Microsoft 2017-01-17 12:07:24 stock       tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt;  9 Microsoft 2017-01-17 12:07:24 soaring     tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt; 10 Microsoft 2017-01-17 12:07:24 by          tag:finance.google.com,clu… Micros…</span>
+<span class="co">#&gt; # … with 105,047 more rows</span></code></pre></div>
+<p>Here we see some of each article’s metadata alongside the words used. We could use tf-idf to determine which words were most specific to each stock symbol.</p>
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://stringr.tidyverse.org">stringr</a></span><span class="op">)</span>
+
+<span class="va">stock_tf_idf</span> <span class="op">&lt;-</span> <span class="va">stock_tokens</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">company</span>, <span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html">str_detect</a></span><span class="op">(</span><span class="va">word</span>, <span class="st">"\\d+"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/bind_tf_idf.html">bind_tf_idf</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">company</span>, <span class="va">n</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="op">-</span><span class="va">tf_idf</span><span class="op">)</span></code></pre></div>
+<p>The top terms for each are visualized in Figure <a href="dtm.html#fig:stocktfidf">5.5</a>. As we’d expect, the company’s name and symbol are typically included, but so are several of their product offerings and executives, as well as companies they are making deals with (such as Disney with Netflix).</p>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:stocktfidf"></span>
+<img src="05-document-term-matrices_files/figure-html/stocktfidf-1.png" alt="The 8 words with the highest tf-idf in recent articles specific to each company" width="90%"><p class="caption">
+Figure 5.5: The 8 words with the highest tf-idf in recent articles specific to each company
+</p>
+</div>
+<p>If we were interested in using recent news to analyze the market and make investment decisions, we’d likely want to use sentiment analysis to determine whether the news coverage was positive or negative. Before we run such an analysis, we should look at what words would contribute the most to positive and negative sentiments, as was shown in Chapter <a href="sentiment.html#most-positive-negative">2.4</a>. For example, we could examine this within the AFINN lexicon (Figure <a href="dtm.html#fig:stockafinn">5.6</a>).</p>
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_tokens</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html">anti_join</a></span><span class="op">(</span><span class="va">stop_words</span>, by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">id</span>, sort <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/get_sentiments.html">get_sentiments</a></span><span class="op">(</span><span class="st">"afinn"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>contribution <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">contribution</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">contribution</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">contribution</span>, <span class="va">word</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Frequency of word * AFINN value"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:stockafinn"></span>
+<img src="05-document-term-matrices_files/figure-html/stockafinn-1.png" alt="The words with the largest contribution to sentiment values in recent financial articles, according to the AFINN dictionary. The 'contribution' is the product of the word and the sentiment score." width="90%"><p class="caption">
+Figure 5.6: The words with the largest contribution to sentiment values in recent financial articles, according to the AFINN dictionary. The ‘contribution’ is the product of the word and the sentiment score.
+</p>
+</div>
+<p>In the context of these financial articles, there are a few big red flags here. The words “share” and “shares” are counted as positive verbs by the AFINN lexicon (“Alice will <strong>share</strong> her cake with Bob”), but they’re actually neutral nouns (“The stock price is $12 per <strong>share</strong>”) that could just as easily be in a positive sentence as a negative one. The word “fool” is even more deceptive: it refers to Motley Fool, a financial services company. In short, we can see that the AFINN sentiment lexicon is entirely unsuited to the context of financial data (as are the NRC and Bing lexicons).</p>
+<p>Instead, we introduce another sentiment lexicon: the Loughran and McDonald dictionary of financial sentiment terms <span class="citation">(Loughran and McDonald <a href="references.html#ref-loughran2011liability" role="doc-biblioref">2011</a>)</span>. This dictionary was developed based on analyses of financial reports, and intentionally avoids words like “share” and “fool”, as well as subtler terms like “liability” and “risk” that may not have a negative meaning in a financial context.</p>
+<p>The Loughran data divides words into six sentiments: “positive”, “negative”, “litigious”, “uncertain”, “constraining”, and “superfluous”. We could start by examining the most common words belonging to each sentiment within this text dataset.</p>
+<div class="sourceCode" id="cb106"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_tokens</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">word</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/get_sentiments.html">get_sentiments</a></span><span class="op">(</span><span class="st">"loughran"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">sentiment</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html">slice_max</a></span><span class="op">(</span><span class="va">n</span>, n <span class="op">=</span> <span class="fl">5</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">word</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">word</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">sentiment</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Frequency of this word in the recent financial articles"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:stockloughransentiments"></span>
+<img src="05-document-term-matrices_files/figure-html/stockloughransentiments-1.png" alt="The most common words in the financial news articles associated with each of the six sentiments in the Loughran and McDonald lexicon" width="90%"><p class="caption">
+Figure 5.7: The most common words in the financial news articles associated with each of the six sentiments in the Loughran and McDonald lexicon
+</p>
+</div>
+<p>These assignments (Figure <a href="dtm.html#fig:stockloughransentiments">5.7</a>) of words to sentiments look more reasonable: common positive words include “strong” and “better”, but not “shares” or “growth”, while negative words include “volatility” but not “fool”. The other sentiments look reasonable as well: the most common “uncertainty” terms include “could” and “may”.</p>
+<p>Now that we know we can trust the dictionary to approximate the articles’ sentiments, we can use our typical methods for counting the number of uses of each sentiment-associated word in each corpus.</p>
+<div class="sourceCode" id="cb107"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_sentiment_count</span> <span class="op">&lt;-</span> <span class="va">stock_tokens</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html">inner_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/tidytext/man/get_sentiments.html">get_sentiments</a></span><span class="op">(</span><span class="st">"loughran"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"word"</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">sentiment</span>, <span class="va">company</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">sentiment</span>, values_from <span class="op">=</span> <span class="va">n</span>, values_fill <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>
+
+<span class="va">stock_sentiment_count</span></code></pre></div>
+<pre><code>#&gt; # A tibble: 9 × 7
+#&gt;   company   constraining litigious negative positive superfluous uncertainty
+#&gt;   &lt;chr&gt;            &lt;int&gt;     &lt;int&gt;    &lt;int&gt;    &lt;int&gt;       &lt;int&gt;       &lt;int&gt;
+#&gt; 1 Amazon               7         8       84      144           3          70
+#&gt; 2 Apple                9        11      161      156           2         132
+#&gt; 3 Facebook             4        32      128      150           4          81
+#&gt; 4 Google               7         8       60      103           0          58
+#&gt; 5 IBM                  8        22      147      148           0         104
+#&gt; 6 Microsoft            6        19       92      129           3         116
+#&gt; 7 Netflix              4         7      111      162           0         106
+#&gt; 8 Twitter              4        12      157       79           1          75
+#&gt; 9 Yahoo                3        28      130       74           0          71</code></pre>
+<p>It might be interesting to examine which company has the most news with “litigious” or “uncertain” terms. But the simplest measure, much as it was for most analysis in Chapter <a href="sentiment.html#sentiment">2</a>, is to see whether the news is more positive or negative. As a general quantitative measure of sentiment, we’ll use “(positive - negative) / (positive + negative)” (Figure <a href="dtm.html#fig:stockpositivity">5.8</a>).</p>
+<div class="sourceCode" id="cb109"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">stock_sentiment_count</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>score <span class="op">=</span> <span class="op">(</span><span class="va">positive</span> <span class="op">-</span> <span class="va">negative</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">positive</span> <span class="op">+</span> <span class="va">negative</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>company <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html">reorder</a></span><span class="op">(</span><span class="va">company</span>, <span class="va">score</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://stringr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">score</span>, <span class="va">company</span>, fill <span class="op">=</span> <span class="va">score</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_col</a></span><span class="op">(</span>show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Positivity score among 20 recent news articles"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:stockpositivity"></span>
+<img src="05-document-term-matrices_files/figure-html/stockpositivity-1.png" alt='"Positivity" of the news coverage around each stock in January 2017, calculated as (positive - negative) / (positive + negative), based on uses of positive and negative words in 20 recent news articles about each company' width="90%"><p class="caption">
+Figure 5.8: “Positivity” of the news coverage around each stock in January 2017, calculated as (positive - negative) / (positive + negative), based on uses of positive and negative words in 20 recent news articles about each company
+</p>
+</div>
+<p>Based on this analysis, we’d say that in January 2017 most of the coverage of Yahoo and Twitter was strongly negative, while coverage of Google and Amazon was the most positive. A glance at current financial headlines suggest that it’s on the right track. If you were interested in further analysis, you could use one of R’s many quantitative finance packages to compare these articles to recent stock prices and other metrics.</p>
+</div>
+</div>
+<div id="summary-4" class="section level2">
+<h2>
+<span class="header-section-number">5.4</span> Summary<a class="anchor" aria-label="anchor" href="#summary-4"><i class="fas fa-link"></i></a>
+</h2>
+<p>Text analysis requires working with a variety of tools, many of which have inputs and outputs that aren’t in a tidy form. This chapter showed how to convert between a tidy text data frame and sparse document-term matrices, as well as how to tidy a Corpus object containing document metadata. The next chapter will demonstrate another notable example of a package, topicmodels, that requires a document-term matrix as input, showing that these conversion tools are an essential part of text analysis.</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="ngrams.html"><span class="header-section-number">4</span> Relationships between words: n-grams and correlations</a></div>
+<div class="next"><a href="topicmodeling.html"><span class="header-section-number">6</span> Topic modeling</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#dtm"><span class="header-section-number">5</span> Converting to and from non-tidy formats</a></li>
+<li>
+<a class="nav-link" href="#tidy-dtm"><span class="header-section-number">5.1</span> Tidying a document-term matrix</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#tidying-documenttermmatrix-objects"><span class="header-section-number">5.1.1</span> Tidying DocumentTermMatrix objects</a></li>
+<li><a class="nav-link" href="#tidying-dfm-objects"><span class="header-section-number">5.1.2</span> Tidying dfm objects</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#cast-dtm"><span class="header-section-number">5.2</span> Casting tidy text data into a matrix</a></li>
+<li>
+<a class="nav-link" href="#tidying-corpus-objects-with-metadata"><span class="header-section-number">5.3</span> Tidying corpus objects with metadata</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#financial"><span class="header-section-number">5.3.1</span> Example: mining financial articles</a></li></ul>
+</li>
+<li><a class="nav-link" href="#summary-4"><span class="header-section-number">5.4</span> Summary</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/dgrtwo/tidy-text-mining/blob/master/05-document-term-matrices.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/dgrtwo/tidy-text-mining/edit/master/05-document-term-matrices.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Text Mining with R</strong>: A Tidy Approach" was written by Julia Silge and David Robinson. It was last built on 2022-02-07.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

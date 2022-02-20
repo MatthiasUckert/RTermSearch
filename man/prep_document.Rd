@@ -28,5 +28,5 @@ token: Token (tokenized using white spaces)
 Perpare Documents
 }
 \examples{
-doc <- prep_document(table_document, string_standardization)
+doc <- prep_document(table_document_short, string_standardization)
 }

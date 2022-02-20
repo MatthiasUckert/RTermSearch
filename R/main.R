@@ -146,11 +146,11 @@ prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
 #' @export
 #'
 #' @examples
-#' doc <- prep_document(table_document, string_standardization)
+#' doc <- prep_document(table_document_short, string_standardization)
 
 
 # DEBUG: prep_document() --------------------------------------------------
-# .tab     <- table_document
+# .tab     <- table_document_short
 # .fun_std <- string_standardization
 prep_document <- function(.tab, .fun_std = NULL) {
   # Define Variables --------------------------------------------------------
@@ -231,7 +231,7 @@ prep_document <- function(.tab, .fun_std = NULL) {
 #' @examples
 #' termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
 #' termlist_long  <- prep_termlist(table_termlist_long, string_standardization)
-#' document       <- prep_document(table_document, string_standardization)
+#' document       <- prep_document(table_document_short, string_standardization)
 #'
 #' tab_pos_short <- position_count(
 #'   termlist_short, document, .cache_terms = TRUE, .tab_pos = NULL
@@ -252,8 +252,23 @@ prep_document <- function(.tab, .fun_std = NULL) {
 
 
 # DEBUG: position_count() -------------------------------------------------
-# .termlist    <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-# .document    <- prep_document(table_document, string_standardization)
+# check_termlist(table_termlist_long, string_standardization)
+# .termlist    <- prep_termlist(table_termlist_long, string_standardization, TRUE, tid)
+# duplicate_doc <- function(.tab, .n) {
+#   tab_ <- dplyr::mutate(.tab, doc_id = "doc-0")
+#   for (i in seq_len(.n)) {
+#     tab_ <- dplyr::bind_rows(
+#       tab_,
+#       dplyr::mutate(.tab, doc_id = paste0("doc-", i))
+#     )
+#   }
+#   return(tab_)
+# }
+#
+# .document    <- prep_document(
+#   .tab = duplicate_doc(.tab = table_document_long, .n = 10),
+#   .fun_std = string_standardization
+#   )
 # .cache_terms <- TRUE
 # .tab_pos     <- NULL
 # quos_        <- dplyr::quos(sen_id)
@@ -307,18 +322,13 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dtplyr::lazy_dt() %>%
     dplyr::inner_join(tab_pos_, by = "token") %>%
     dplyr::arrange(hash, pos, oid) %>%
-    dplyr::group_by(hash, tmp1 = cumsum(oid == 1)) %>%
-    dplyr::mutate(
-      tmp2 = dplyr::if_else(dplyr::row_number() > ngram, NA_integer_, tmp1)
-      ) %>%
-    dplyr::filter(!is.na(tmp2)) %>%
-    dplyr::filter(c(1, diff(oid)) == 1) %>%
-    dplyr::filter(c(1, diff(pos)) == 1) %>%
+    dplyr::group_by(hash, tmp = cumsum(oid == 1)) %>%
+    dplyr::filter(dplyr::row_number() <= ngram) %>%
     dplyr::filter(dplyr::n() == ngram) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(dplyr::desc(ngram), hash) %>%
-    dplyr::mutate(dup = duplicated(pos)) %>%
-    dplyr::group_by(hash, tmp2) %>%
+    dplyr::filter(all(c(1, diff(oid)) == 1) , all(c(1, diff(pos)) == 1)) %>%
+    dplyr::arrange(dplyr::desc(ngram), hash)
+  tab_[["dup"]] <- duplicated(tab_$pos)
+  tab_ <- tab_ %>%
     dplyr::summarise(
       start = dplyr::first(pos),
       stop = dplyr::last(pos),
@@ -326,7 +336,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
       doc_id = doc_[["doc_id"]][1],
       .groups = "drop"
     ) %>%
-    dplyr::select(-tmp2)
+    dplyr::select(-tmp)
 
 
   # Remove Hits spanning over Separators ------------------------------------
@@ -427,7 +437,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 #'
 #' @examples
 #' termlist_short <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-#' document       <- prep_document(table_document, string_standardization)
+#' document       <- prep_document(table_document_short, string_standardization)
 #'
 #' tab_pos_short <- position_count(
 #'   termlist_short, document, sen_id, .cache_terms = TRUE, .tab_pos = NULL
@@ -439,7 +449,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 
 # DEBUG: get_context() ----------------------------------------------------
 # .termlist <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-# .document <- prep_document(table_document, string_standardization)
+# .document <- prep_document(table_document_short, string_standardization)
 # .position <- position_count(.termlist, .document, sen_id)
 # .n <- NA
 # .context <- "sentence"

@@ -85,7 +85,7 @@ prep_termlist_old <- function(.tab, .fun_std = NULL) {
 #'
 # DEBUG
 # .termlist <- prep_termlist(table_termlist_short, string_standardization)
-# .document <- prep_document(table_document, string_standardization)
+# .document <- prep_document(table_document_short, string_standardization)
 # quos_ <- dplyr::quos(sen_id, pag_id)
 position_count_old <- function(.termlist, .document, ...) {
   # Define Variables --------------------------------------------------------
