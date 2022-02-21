@@ -146,7 +146,8 @@ h_dependencies_termlist <- function(.termlist, ...) {
 
   # Define Variables --------------------------------------------------------
   hash <- token <- oid <- sep <- start <- pos <- tok_id <- hash_ <-
-    child_pos <- child_hash <- dep <- ngram <- term_orig <- term <- NULL
+    child_pos <- child_hash <- dep <- ngram <- term_orig <- term <-
+    children <- parents <- parent_hash <- parent_pos <- NULL
 
   doc_ <- .termlist %>%
     dplyr::select(sep = hash, token, oid) %>%
@@ -159,7 +160,10 @@ h_dependencies_termlist <- function(.termlist, ...) {
     dplyr::select(hash, pos) %>%
     tidyr::unnest(pos) %>%
     dplyr::left_join(dplyr::select(doc_, hash_ = sep, pos = tok_id, oid), by = "pos") %>%
-    dplyr::filter(!hash == hash_) %>%
+    dplyr::filter(!hash == hash_)
+
+
+  cnt_children_ <- cnt_ %>%
     dplyr::group_by(hash_, hash) %>%
     dplyr::summarise(child_pos = list(oid), .groups = "drop") %>%
     dplyr::group_by(hash_) %>%
@@ -169,11 +173,26 @@ h_dependencies_termlist <- function(.termlist, ...) {
       .groups = "drop"
     ) %>%
     dplyr::mutate(
-      dep = purrr::map2(child_hash, child_pos, ~ purrr::set_names(c(.y), .x))
-    ) %>% dplyr::select(hash_, dep)
+      children = purrr::map2(child_hash, child_pos, ~ purrr::set_names(c(.y), .x))
+    ) %>% dplyr::select(hash = hash_, children)
+
+  cnt_parents_ <- cnt_ %>%
+    dplyr::group_by(hash, hash_) %>%
+    dplyr::summarise(parent_pos = list(oid), .groups = "drop") %>%
+    dplyr::group_by(hash) %>%
+    dplyr::summarise(
+      parent_hash = list(hash_),
+      parent_pos = list(parent_pos),
+      .groups = "drop"
+    ) %>%
+    dplyr::mutate(
+      parents = purrr::map2(parent_hash, parent_pos, ~ purrr::set_names(c(.y), .x))
+    ) %>% dplyr::select(hash, parents)
+
 
   .termlist %>%
-    dplyr::left_join(cnt_, by = c("hash" = "hash_")) %>%
-    dplyr::select(hash, ngram, term_orig, term, oid, token, dep, !!!quos_)
+    dplyr::left_join(cnt_children_, by = "hash") %>%
+    dplyr::left_join(cnt_parents_, by = "hash") %>%
+    dplyr::select(hash, ngram, term_orig, term, oid, token, parents, children, !!!quos_)
 
 }
