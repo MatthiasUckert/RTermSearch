@@ -89,7 +89,7 @@ h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
   quos_ <- dplyr::quos(...)
 
   # Define Variables --------------------------------------------------------
-  token <- hash <- ngram <- term_orig <- oid <- term <- n_dup <- NULL
+  token <- hash <- ngram <- term_orig <- oid <- term <- n_dup <- nterm <- NULL
 
   # Check Columns in Dataframe ----------------------------------------------
   if (!"term" %in% colnames(.tab)) {
@@ -109,7 +109,8 @@ h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
     warning(
       "AFTER standardization, the column 'term' contains duplicates,
       please call the function check_termlist() for more information.
-      Duplicated Terms can be seen in column: 'term_orig"
+      Duplicated Terms can be seen in column: 'term_orig",
+      call. = FALSE
     )
   }
 
@@ -124,7 +125,7 @@ h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
       hash  = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
       oid   = purrr::map(token, ~ seq_len(length(.x))),
       ngram = lengths(token),
-      nterm = lengths(term)
+      nterm = lengths(term_orig)
     ) %>%
     dplyr::select(hash, ngram, nterm, term_orig, term, oid, token, !!!quos_)
 
