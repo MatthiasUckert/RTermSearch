@@ -80,9 +80,9 @@ h_position_count <- function(.row_terms, .doc) {
 #' A Dataframe
 
 # DEBUG
-# .tab     <- table_termlist_short
+# .tab     <- dplyr::bind_rows(table_termlist_short, table_termlist_long)
 # .fun_std <- string_standardization
-# quos_    <- dplyr::quo(tid)
+# quos_    <- dplyr::quos(tid)
 h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
 
   # Get Quosures ------------------------------------------------------------
@@ -106,22 +106,27 @@ h_prep_termlist <- function(.tab, .fun_std = NULL, ...) {
 
   # Check if Terms are unique -----------------------------------------------
   if (any(duplicated(tab_[["term"]]))) {
-    stop(
+    warning(
       "AFTER standardization, the column 'term' contains duplicates,
-      please call the function check_termlist() for more information.",
-      call. = FALSE
+      please call the function check_termlist() for more information.
+      Duplicated Terms can be seen in column: 'term_orig"
     )
   }
 
   # Prepare Termlist --------------------------------------------------------
   tab_ %>%
+    dplyr::group_by(term) %>%
+    dplyr::summarise(
+      dplyr::across(c(term_orig, !!!quos_), list)
+    ) %>%
     dplyr::mutate(
       token = stringi::stri_split_fixed(term, " "),
-      hash   = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
+      hash  = purrr::map_chr(term, ~ digest::digest(.x, algo = "xxhash32")),
       oid   = purrr::map(token, ~ seq_len(length(.x))),
-      ngram = lengths(token)
+      ngram = lengths(token),
+      nterm = lengths(term)
     ) %>%
-    dplyr::select(hash, ngram, term_orig, term, oid, token, !!!quos_)
+    dplyr::select(hash, ngram, nterm, term_orig, term, oid, token, !!!quos_)
 
 }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{prep_document}
 \alias{prep_document}
-\title{Perpare Documents}
+\title{Prepare Documents}
 \usage{
 prep_document(.tab, .fun_std = NULL)
 }
@@ -25,7 +25,7 @@ tok_id: Token ID\cr
 token: Token (tokenized using white spaces)
 }
 \description{
-Perpare Documents
+Prepare Documents
 }
 \examples{
 doc <- prep_document(table_document_short, string_standardization)

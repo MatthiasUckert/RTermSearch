@@ -125,7 +125,7 @@ prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
 
 
 
-#' Perpare Documents
+#' Prepare Documents
 #'
 #' @param .tab
 #' A Dataframe with at least two columns:\cr
