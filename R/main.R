@@ -168,8 +168,14 @@ prep_document <- function(.tab, .fun_std = NULL) {
 
   # Tokenize Dataframe ------------------------------------------------------
   tab_ <- .tab %>%
+    tidytext::unnest_tokens(
+      output = text,
+      input = text,
+      token = stringi::stri_split_regex, pattern = "\f",
+      to_lower = FALSE, drop = FALSE
+    ) %>%
     dplyr::group_by(doc_id) %>%
-    dplyr::mutate(pag_id = dplyr::row_number(), .before = text) %>%
+    dplyr::mutate(pag_id = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     tidytext::unnest_tokens(
       output = text,
