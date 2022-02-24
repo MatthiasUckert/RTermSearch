@@ -133,7 +133,9 @@ prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
 #' text: Document text\cr
 #'
 #' IMPORTANT NOTE: Dataframe must contain only one row per doc_id
-#' @param .fun_std A function to standardize Strings. Default = NULL (no standardization use)
+#' @param .fun_std
+#' A function to standardize Strings. Default = NULL (no standardization use)
+#' @param .until c("tok", "sen", "par", "pag")
 #'
 #' @return
 #' A Dataframe with the following columns:\cr
@@ -152,13 +154,16 @@ prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
 # DEBUG: prep_document() --------------------------------------------------
 # .tab     <- table_document_short
 # .fun_std <- string_standardization
-prep_document <- function(.tab, .fun_std = NULL) {
+# .until = c("tok", "sen", "par", "pag")
+prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par", "pag")) {
+  until_ <- match.arg(.until, c("tok", "sen", "par", "pag"))
+
   # Define Variables --------------------------------------------------------
   doc_id <- text <- token <- pag_id <- par_id <- sen_id <- tok_id <- NULL
 
   # Check Columns in Dataframe ----------------------------------------------
   if (!all(c("doc_id", "text") %in% colnames(.tab))) {
-    stop("Input MUST contain the columns 'doc_id' and 'term'", call. = FALSE)
+    stop("Input MUST contain the columns 'doc_id' and 'text'", call. = FALSE)
   }
 
   if (any(duplicated(.tab[["doc_id"]]))) {
@@ -167,6 +172,7 @@ prep_document <- function(.tab, .fun_std = NULL) {
 
 
   # Tokenize Dataframe ------------------------------------------------------
+  # To Page -----------------------------------------------------------------
   tab_ <- .tab %>%
     tidytext::unnest_tokens(
       output = text,
@@ -174,32 +180,59 @@ prep_document <- function(.tab, .fun_std = NULL) {
       token = stringi::stri_split_regex, pattern = "\f",
       to_lower = FALSE, drop = FALSE
     ) %>%
-    dplyr::group_by(doc_id) %>%
-    dplyr::mutate(pag_id = dplyr::row_number()) %>%
-    dplyr::ungroup() %>%
+    dplyr::mutate(pag_id = dplyr::row_number())
+
+  if (until_ == "pag") {
+    if (!is.null(.fun_std)) {
+      tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
+    }
+    tab_ <- dplyr::select(tab_, doc_id, pag_id, token = text)
+    return(tab_)
+  }
+
+
+  # To Paragraph ------------------------------------------------------------
+  tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = text,
       input = text,
       token = stringi::stri_split_regex, pattern = "\n\n",
       to_lower = FALSE, drop = FALSE
     ) %>%
-    dplyr::group_by(doc_id) %>%
-    dplyr::mutate(par_id = dplyr::row_number()) %>%
-    dplyr::ungroup() %>%
+    dplyr::mutate(par_id = dplyr::row_number())
+
+  if (until_ == "par") {
+    if (!is.null(.fun_std)) {
+      tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
+    }
+    tab_ <- dplyr::select(tab_, doc_id, pag_id, par_id, token = text)
+    return(tab_)
+  }
+
+
+  # To Sentence -------------------------------------------------------------
+  tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = text,
       input = text,
       token = "sentences",
       to_lower = FALSE
     ) %>%
-    dplyr::group_by(doc_id) %>%
-    dplyr::mutate(sen_id = dplyr::row_number()) %>%
-    dplyr::ungroup()
+    dplyr::mutate(sen_id = dplyr::row_number())
+
+  if (until_ == "sen") {
+    if (!is.null(.fun_std)) {
+      tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
+    }
+    tab_ <- dplyr::select(tab_, doc_id, pag_id, par_id, sen_id, token = text)
+    return(tab_)
+  }
 
   if (!is.null(.fun_std)) {
     tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
   }
 
+  # To Token ----------------------------------------------------------------
   tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = token,
@@ -209,9 +242,7 @@ prep_document <- function(.tab, .fun_std = NULL) {
       to_lower = FALSE
     ) %>%
     dplyr::filter(!token == "") %>%
-    dplyr::group_by(doc_id) %>%
     dplyr::mutate(tok_id = dplyr::row_number()) %>%
-    dplyr::ungroup() %>%
     dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token)
 }
 

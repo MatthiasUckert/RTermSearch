@@ -4,7 +4,7 @@
 \alias{prep_document}
 \title{Prepare Documents}
 \usage{
-prep_document(.tab, .fun_std = NULL)
+prep_document(.tab, .fun_std = NULL, .until = c("tok", "sen", "par", "pag"))
 }
 \arguments{
 \item{.tab}{A Dataframe with at least two columns:\cr
@@ -14,6 +14,8 @@ text: Document text\cr
 IMPORTANT NOTE: Dataframe must contain only one row per doc_id}
 
 \item{.fun_std}{A function to standardize Strings. Default = NULL (no standardization use)}
+
+\item{.until}{c("tok", "sen", "par", "pag")}
 }
 \value{
 A Dataframe with the following columns:\cr
