@@ -482,7 +482,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 #'
 #' tab_context_word     <- get_context(tab_pos_short, document, 5, "word")
 #' tab_context_sentence <- get_context(tab_pos_short, document, 1, "sentence")
-#' tab_context_vars     <- get_context(tab_pos_short, document, .vars = "sentence")
+#' tab_context_vars     <- get_context(tab_pos_short, document, .vars = "page")
 
 # DEBUG: get_context() ----------------------------------------------------
 # .termlist <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
