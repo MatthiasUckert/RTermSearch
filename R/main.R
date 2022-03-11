@@ -485,12 +485,12 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 #' tab_context_vars     <- get_context(tab_pos_short, document, .vars = "sentence")
 
 # DEBUG: get_context() ----------------------------------------------------
-.termlist <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-.document <- prep_document(table_document_short, string_standardization)
-.position <- position_count(.termlist, .document, sen_id)
-.n <- 0
-.context <- "sentence"
-.vars = c("sentence", "paragraph", "page")
+# .termlist <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
+# .document <- prep_document(table_document_short, string_standardization)
+# .position <- position_count(.termlist, .document, sen_id)
+# .n <- 0
+# .context <- "sentence"
+# .vars = c("sentence", "paragraph", "page")
 get_context <- function(
   .position, .document, .n = NA,
   .context = c("word", "sentence", "paragraph", "page"),
