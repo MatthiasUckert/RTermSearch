@@ -425,7 +425,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 
   # Retrieve additional Term List columns -----------------------------------
   cn_ <- colnames(.termlist)
-  cn_ <- cn_[!cn_ %in% c("ngram", "term_orig", "term", "oid", "token", "dep")]
+  cn_ <- cn_[!cn_ %in% c("ngram", "term_orig", "term", "oid", "token", "parents", "children")]
 
 
   if (length(cn_) > 1) {
@@ -580,9 +580,13 @@ get_context <- function(
 
   if (length(cn_) > 0) {
     pos_ <- .position[, cn_]
-    dplyr::bind_cols(tibble::as_tibble(tab_), pos_)
+    dplyr::bind_cols(tibble::as_tibble(tab_), pos_) %>%
+      dplyr::mutate(doc_id = .position$doc_id[1]) %>%
+      dplyr::select(doc_id, dplyr::everything())
   } else {
-    tibble::as_tibble(tab_)
+    tibble::as_tibble(tab_) %>%
+      dplyr::mutate(doc_id = .position$doc_id[1]) %>%
+      dplyr::select(doc_id, dplyr::everything())
   }
 
 }
