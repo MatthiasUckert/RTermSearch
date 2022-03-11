@@ -556,9 +556,10 @@ get_context <- function(
       dplyr::summarise(token = paste(token, collapse = sep_), n = .n, .groups = "drop") %>%
       tidyr::pivot_wider(names_from = col, values_from = token) %>%
       dplyr::select(hash, start, stop, pre, term, post, n) %>%
-      dplyr::arrange(hash, start)
+      dplyr::arrange(hash, start) %>%
+      tibble::as_tibble()
   } else {
-    tab_ <- dtplyr::lazy_dt(dplyr::select(.position, hash, start, stop))
+    tab_ <- dplyr::select(.position, hash, start, stop)
   }
 
 
