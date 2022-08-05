@@ -9,8 +9,7 @@ check_termlist(.tab, .fun_std = NULL)
 \arguments{
 \item{.tab}{A Dataframe with at least 1 column (term: Term)}
 
-\item{.fun_std}{A
-Function to standardize Strings.\cr
+\item{.fun_std}{A Function to standardize Strings.\cr
 Default = NULL (no standardization use)\cr
 Build-in Function .fun_std = string_standardization, can be used.}
 }

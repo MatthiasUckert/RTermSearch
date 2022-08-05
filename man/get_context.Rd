@@ -40,5 +40,5 @@ tab_pos_short <- position_count(
 
 tab_context_word     <- get_context(tab_pos_short, document, 5, "word")
 tab_context_sentence <- get_context(tab_pos_short, document, 1, "sentence")
-tab_context_vars     <- get_context(tab_pos_short, document, .vars = "sentence")
+tab_context_vars     <- get_context(tab_pos_short, document, .vars = "page")
 }

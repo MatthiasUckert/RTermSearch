@@ -1,8 +1,8 @@
 #' Check Termlist
 #' @param .tab
 #' A Dataframe with at least 1 column (term: Term)
-#' @param .fun_std A
-#' Function to standardize Strings.\cr
+#' @param .fun_std
+#' A Function to standardize Strings.\cr
 #' Default = NULL (no standardization use)\cr
 #' Build-in Function .fun_std = string_standardization, can be used.
 #'
@@ -23,27 +23,26 @@
 #'
 #' # Example with standardization and duplicated term
 #' check_termlist(termlist, string_standardization)
-
-
-
-# DEBUG: check_termlist() -------------------------------------------------
-# .tab     <- table_termlist_short
-# .fun_std <- string_standardization
 check_termlist <- function(.tab, .fun_std = NULL) {
+
+  # DEBUG -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  # source("test-debug/debug-check_termlist.R")
+
   term <- dup_id <- term_orig <- NULL
 
-  # Check Columns in Dataframe ----------------------------------------------
+  # Check Columns in Dataframe -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   if (!"term" %in% colnames(.tab)) {
     stop("Input MUST contain the column 'term'", call. = FALSE)
   }
 
-  # Standardize Terms -------------------------------------------------------
+  # Standardize Terms -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   if (!is.null(.fun_std)) {
     tab_ <- dplyr::mutate(.tab, term_orig = term, term = .fun_std(term))
   } else {
     tab_ <- dplyr::mutate(.tab, term_orig = term)
   }
 
+  # Get Duplicates -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   tab_dup_ <- tab_ %>%
     dplyr::group_by(term) %>%
     dplyr::filter(dplyr::n() > 1) %>%
@@ -101,17 +100,11 @@ check_termlist <- function(.tab, .fun_std = NULL) {
 #' prep_termlist(table_termlist_short, string_standardization)
 #' prep_termlist(table_termlist_short, string_standardization, TRUE)
 #' prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-
-
-# DEBUG: prep_termlist() --------------------------------------------------
-# .tab     <- table_termlist_short
-# .fun_std <- string_standardization
-# .get_dep = FALSE
-# quos_ <- dplyr::quo(tid)
-
 prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
+  # DEBUG -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  # source("test-debug/debug-prep_termlist.R")
 
-  # Get Quosures ------------------------------------------------------------
+  # Get Quosures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   quos_ <- dplyr::quos(...)
 
   tab_ <- h_prep_termlist(.tab, .fun_std, !!!quos_)
@@ -149,19 +142,16 @@ prep_termlist <- function(.tab, .fun_std = NULL, .get_dep = FALSE, ...) {
 #'
 #' @examples
 #' doc <- prep_document(table_document_short, string_standardization)
-
-
-# DEBUG: prep_document() --------------------------------------------------
-# .tab     <- table_document_short
-# .fun_std <- string_standardization
-# .until = c("tok", "sen", "par", "pag")
 prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par", "pag")) {
+  # DEBUG -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  # source("test-debug/debug-prep_document.R")
+
   until_ <- match.arg(.until, c("tok", "sen", "par", "pag"))
 
-  # Define Variables --------------------------------------------------------
+  # Define Variables -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   doc_id <- text <- token <- pag_id <- par_id <- sen_id <- tok_id <- NULL
 
-  # Check Columns in Dataframe ----------------------------------------------
+  # Check Columns in Dataframe -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   if (!all(c("doc_id", "text") %in% colnames(.tab))) {
     stop("Input MUST contain the columns 'doc_id' and 'text'", call. = FALSE)
   }
@@ -171,8 +161,8 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
   }
 
 
-  # Tokenize Dataframe ------------------------------------------------------
-  # To Page -----------------------------------------------------------------
+  # Tokenize Dataframe -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+  # To Page -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   tab_ <- .tab %>%
     tidytext::unnest_tokens(
       output = text,
@@ -191,7 +181,7 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
   }
 
 
-  # To Paragraph ------------------------------------------------------------
+  # To Paragraph -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = text,
@@ -210,7 +200,7 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
   }
 
 
-  # To Sentence -------------------------------------------------------------
+  # To Sentence -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = text,
@@ -232,7 +222,7 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
     tab_ <- dplyr::mutate(tab_, text = .fun_std(text))
   }
 
-  # To Token ----------------------------------------------------------------
+  # To Token -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   tab_ <- tab_ %>%
     tidytext::unnest_tokens(
       output = token,
@@ -244,6 +234,8 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
     dplyr::filter(!token == "") %>%
     dplyr::mutate(tok_id = dplyr::row_number()) %>%
     dplyr::select(doc_id, pag_id, par_id, sen_id, tok_id, token)
+
+  return(tab_)
 }
 
 #' Get Position of Terms
@@ -286,65 +278,41 @@ prep_document <- function(.tab, .fun_std = NULL, .until = c("tok", "sen", "par",
 #'   termlist_long, document, sen_id, .cache_terms = TRUE, .tab_pos = tab_pos_short
 #' )
 #' all.equal(tab_pos_long1, tab_pos_long2, check.attributes = FALSE)
-
-
-# DEBUG: position_count() -------------------------------------------------
-# check_termlist(table_termlist_long, string_standardization)
-# .termlist    <- prep_termlist(table_termlist_long, string_standardization, TRUE, tid)
-# duplicate_doc <- function(.tab, .n) {
-#   tab_ <- dplyr::mutate(.tab, doc_id = "doc-0")
-#   for (i in seq_len(.n)) {
-#     tab_ <- dplyr::bind_rows(
-#       tab_,
-#       dplyr::mutate(.tab, doc_id = paste0("doc-", i))
-#     )
-#   }
-#   return(tab_)
-# }
-#
-# .document    <- prep_document(
-#   .tab = duplicate_doc(.tab = table_document_long, .n = 10),
-#   .fun_std = string_standardization
-#   )
-# .cache_terms <- TRUE
-# .tab_pos     <- NULL
-# quos_        <- dplyr::quos(sen_id)
-#
-# .termlist0   <- prep_termlist(table_termlist_short, string_standardization, TRUE, tid)
-# .termlist1   <- prep_termlist(table_termlist_long, string_standardization, TRUE, tid)
-# .tab_pos     <- position_count(.termlist0, .document, sen_id, .cache_terms = TRUE)
 position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_pos = NULL) {
+  # DEBUG -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  # source("test-debug/debug-position_count.R")
+
 
   hash <- token <- pos <- tok_id <- ngram <- term <- oid <- tmp1 <- tmp2 <- dup <-
     doc_id <- start <- tmp <- sen_id <- sen_id.x <- sen_id.y <- par_id <- par_id.x <-
     par_id.y <- pag_id <- pag_id.x <- pag_id.y <- NULL
 
-  # Get Quosures ------------------------------------------------------------
+  # Get Quosures -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   quos_ <- dplyr::quos(...)
   quos_vec_ <- sort(gsub("~", "", as.character(unlist(quos_))))
   quos_reg_ <- paste(quos_vec_, collapse = "|")
 
-  # Get cached terms --------------------------------------------------------
+  # Get cached terms -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   if (!is.null(.tab_pos)) {
     hashes_ <- attr(.tab_pos, "cache-terms")
   } else {
     hashes_ <- NULL
   }
 
-  # Filter Termlist for calculated Terms ------------------------------------
+  # Filter Termlist for calculated Terms -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   term_list_ <- dplyr::filter(.termlist, !hash %in% hashes_)
   if (nrow(term_list_) == 0) {
     return(.tab_pos)
   }
 
 
-  # Prep Input --------------------------------------------------------------
+  # Prep Input -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   vec_ <- unique(unlist(term_list_$token))
   vec_ <- purrr::set_names(vec_, vec_)
   doc_ <- dplyr::filter(.document, token %in% vec_)
 
 
-  # get Positions -----------------------------------------------------------
+  # get Positions -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   tab_pos_ <- purrr::map(vec_, ~ which(.x == doc_$token)) %>%
     tibble::enframe(name = "token", value = "pos") %>%
     tidyr::unnest(pos) %>%
@@ -352,7 +320,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dplyr::left_join(dplyr::select(doc_, pos = tok_id, !!!quos_), by = "pos")
 
 
-  # Prepare Output ----------------------------------------------------------
+  # Prepare Output -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   tab_ <- term_list_ %>%
     dplyr::select(hash, ngram, term, oid, token) %>%
     tidyr::unnest(c(oid, token)) %>%
@@ -376,7 +344,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
     dplyr::select(-tmp)
 
 
-  # Remove Hits spanning over Separators ------------------------------------
+  # Remove Hits spanning over Separators -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   if (!length(quos_) == 0) {
     doc_join_ <- dplyr::select(doc_, doc_id, tok_id, !!!quos_)
 
@@ -408,7 +376,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
 
 
 
-  # Combine Results ---------------------------------------------------------
+  # Combine Results -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
   if (!is.null(.tab_pos)) {
     tab_ <- dplyr::bind_rows(.tab_pos, tibble::as_tibble(tab_)) %>%
       dplyr::arrange(dplyr::desc(stop - start), hash) %>%
@@ -423,7 +391,7 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
   }
 
 
-  # Retrieve additional Term List columns -----------------------------------
+  # Retrieve additional Term List columns -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ---
   cn_ <- colnames(.termlist)
   cn_ <- cn_[!cn_ %in% c("ngram", "term_orig", "term", "oid", "token", "parents", "children")]
 
@@ -439,13 +407,13 @@ position_count <- function(.termlist, .document, ..., .cache_terms = TRUE, .tab_
       tibble::as_tibble()
   }
 
-  # Cache Terms -------------------------------------------------------------
+  # Cache Terms -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   if (.cache_terms) {
     attr(tab_, "cache-terms") <- unique(c(attr(tab_, "cache-terms"), term_list_[["hash"]]))
   }
 
 
-  # Add Separators ----------------------------------------------------------
+  # Add Separators -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
   attr(tab_, "separators") <- quos_vec_
 
   dplyr::select(tab_, doc_id, hash, start, stop, dup, dplyr::everything())
